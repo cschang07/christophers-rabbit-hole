@@ -60,6 +60,7 @@ export interface PricePoint {
   price: number;
   ma20: number;
   ma60: number;
+  taiex: number;
 }
 
 export interface FlowPoint {

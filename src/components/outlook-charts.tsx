@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Area,
   AreaChart,
+  Legend,
   Line,
   LineChart,
   ReferenceLine,
@@ -18,7 +19,7 @@ import { outlook0050 } from "@/data/outlook";
 type Tab = "price" | "flow" | "tsmc";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "price", label: "0050 價格與均線" },
+  { id: "price", label: "0050 vs 台股加權" },
   { id: "flow", label: "外資 / 投信籌碼" },
   { id: "tsmc", label: "台積電 (權重 48%)" },
 ];
@@ -51,30 +52,71 @@ export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
             <LineChart data={data.priceSeries}>
               <XAxis dataKey="date" stroke="#a8a29e" fontSize={11} />
               <YAxis
-                stroke="#a8a29e"
+                yAxisId="left"
+                stroke="#0f766e"
                 fontSize={11}
                 domain={["dataMin - 5", "dataMax + 5"]}
+                tickFormatter={(v) => `${v}`}
               />
-              <Tooltip />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                stroke="#6366f1"
+                fontSize={11}
+                domain={["dataMin - 500", "dataMax + 500"]}
+                tickFormatter={(v) => `${(v / 1000).toFixed(1)}k`}
+              />
+              <Tooltip
+                formatter={(value, name) => {
+                  const n = Number(value);
+                  if (name === "taiex") return [n.toLocaleString(), "台股加權"];
+                  if (name === "price") return [n, "0050"];
+                  return [n, String(name)];
+                }}
+              />
+              <Legend
+                formatter={(value) =>
+                  value === "price"
+                    ? "0050"
+                    : value === "taiex"
+                      ? "台股加權"
+                      : value
+                }
+              />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="price"
+                name="price"
                 stroke="#0f766e"
                 strokeWidth={2}
                 dot={false}
               />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="ma20"
+                name="ma20"
                 stroke="#a8a29e"
                 strokeDasharray="4 4"
                 dot={false}
               />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="ma60"
+                name="ma60"
                 stroke="#d6d3d1"
                 strokeDasharray="2 2"
+                dot={false}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="taiex"
+                name="taiex"
+                stroke="#6366f1"
+                strokeWidth={2}
                 dot={false}
               />
             </LineChart>

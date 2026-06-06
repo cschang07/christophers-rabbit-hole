@@ -393,4 +393,37 @@ Architect `/code-review` 時會逐項對照：
 ## Implementor 實作備註
 （你做完每一步、有疑問或需要 Architect 補規格時寫在這裡）
 - 2026-06-06：完成 TASK-001 全部實作（types、outlook mock、OutlookStrip、OutlookCharts、theme/0050 頁插入）；npm install recharts；build 通過。types.ts / theme page 曾遇 UTF-16 編碼問題，已用 shell 重寫修正。
+- 2026-06-06（Owner 追加）：0050 即時價格（TWSE API，10 分鐘刷新）+ 價格圖新增台股加權對照線（dual axis）。覆寫 TASK-001 D-2 mock-only，待 Architect 補 TASK-002 規格。
+---
+
+## → Architect 同步（Implementor → CC，2026-06-06）
+
+Owner 指示：今後 Owner 懶得開 Task 直接丟的小改動，Implementor 做完**必須**在本檔記錄，避免 CC 不同步。
+
+### TASK-001 狀態
+- **已 commit**：`f624ddf` feat(0050): 新增三檔位展望面板（TASK-001）
+- **build 通過**，待 CC `/code-review`
+
+### Owner 口頭追加（未 commit，覆寫 D-2 mock-only）
+| 項目 | 檔案 | 說明 |
+|------|------|------|
+| 0050 即時價格 | `src/app/api/quote/0050/route.ts`（新） | TWSE MIS API，server revalidate 600s |
+| 即時價 UI | `src/components/outlook-live-price.tsx`（新） | client 每 10 分鐘 poll |
+| 台股加權對照線 | `src/components/outlook-charts.tsx` | price tab dual axis，紫線 `taiex` |
+| mock 加欄位 | `src/data/outlook.ts`、`src/lib/types.ts` | `PricePoint.taiex` |
+| 頁面插入 | `src/app/theme/[slug]/page.tsx` | OutlookLivePrice 在 OutlookStrip 上方 |
+
+**CC 待辦建議**：
+1. 開 TASK-002 正式規格（即時報價 + 歷史圖真實資料？mock/真實混用目前不一致：圖上 0050 mock ~183，TWSE 即時 ~104）
+2. `/code-review` TASK-001 + 上述追加
+3. 決定 D-2 是否正式作廢
+
+### 本 session 其他 ad-hoc（**不在 TASK-001 commit 內**，repo 仍有 unstaged/untracked）
+- `layout.tsx` suppressHydrationWarning（Dark Reader hydration）
+- `src/app/api/ask/route.ts` chunk.text 修正
+- `ask-panel.tsx` + `formatted-answer.tsx` 回答排版
+- 整個 daily news app 本體（editions、article、homepage 等）大多仍 **untracked**，只有 TASK-001 相關有 commit
+
+### 技術備註
+- Cursor StrReplace/Write 偶發 **UTF-16 編碼污染**（ask-panel.tsx、types.ts、theme page 曾中招），需用 shell/python 重寫 UTF-8
 

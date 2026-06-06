@@ -4,6 +4,7 @@ import { ArticleCard } from "@/components/article-card";
 import { EmptyThemePanel } from "@/components/empty-theme";
 import { ArrowLeftIcon } from "@/components/icons";
 import { OutlookCharts } from "@/components/outlook-charts";
+import { OutlookLivePrice } from "@/components/outlook-live-price";
 import { OutlookStrip } from "@/components/outlook-strip";
 import { ThemeSidebar } from "@/components/theme-sidebar";
 import {
@@ -58,6 +59,7 @@ export default async function ThemePage({ params }: ThemePageProps) {
             <>
               {slug === "0050" && (
                 <>
+                  <OutlookLivePrice />
                   <OutlookStrip />
                   <OutlookCharts />
                 </>
