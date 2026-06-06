@@ -1,5 +1,4 @@
 import type { OutlookData, OutlookDirection, OutlookHorizon } from "@/lib/types";
-import { outlook0050 } from "@/data/outlook";
 
 const DIRECTION_COLOR: Record<OutlookDirection, string> = {
   極空: "#dc2626",
@@ -52,7 +51,14 @@ function HorizonCard({ horizon }: { horizon: OutlookHorizon }) {
   );
 }
 
-export function OutlookStrip({ data = outlook0050 }: { data?: OutlookData }) {
+export function OutlookStrip({ data }: { data: OutlookData }) {
+  if (!data.horizons.length) {
+    return (
+      <section className="mb-8 rounded-2xl border border-stone-200 bg-white p-5 text-sm text-stone-400 shadow-sm">
+        三檔位展望生成中…
+      </section>
+    );
+  }
   return (
     <section className="mb-8">
       <div className="mb-3 flex items-baseline justify-between">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -14,7 +14,6 @@ import {
   YAxis,
 } from "recharts";
 import type { OutlookData } from "@/lib/types";
-import { outlook0050 } from "@/data/outlook";
 
 type Tab = "price" | "flow" | "tsmc";
 
@@ -24,8 +23,10 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "tsmc", label: "台積電 (權重 48%)" },
 ];
 
-export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
+export function OutlookCharts({ data }: { data: OutlookData }) {
   const [tab, setTab] = useState<Tab>("price");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <section className="mb-10 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -47,8 +48,9 @@ export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
       </div>
 
       <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          {tab === "price" && (
+        {!mounted && <div className="h-full w-full animate-pulse rounded-lg bg-stone-50" />}
+        {mounted && tab === "price" && (
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data.priceSeries}>
               <XAxis dataKey="date" stroke="#a8a29e" fontSize={11} />
               <YAxis
@@ -120,8 +122,10 @@ export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
                 dot={false}
               />
             </LineChart>
-          )}
-          {tab === "flow" && (
+          </ResponsiveContainer>
+        )}
+        {mounted && tab === "flow" && (
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.flowSeries}>
               <XAxis dataKey="date" stroke="#a8a29e" fontSize={11} />
               <YAxis stroke="#a8a29e" fontSize={11} />
@@ -142,8 +146,10 @@ export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
                 fillOpacity={0.5}
               />
             </AreaChart>
-          )}
-          {tab === "tsmc" && (
+          </ResponsiveContainer>
+        )}
+        {mounted && tab === "tsmc" && (
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data.tsmcSeries}>
               <XAxis dataKey="date" stroke="#a8a29e" fontSize={11} />
               <YAxis
@@ -160,8 +166,8 @@ export function OutlookCharts({ data = outlook0050 }: { data?: OutlookData }) {
                 dot={false}
               />
             </LineChart>
-          )}
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        )}
       </div>
     </section>
   );

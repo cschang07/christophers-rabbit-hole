@@ -428,3 +428,25 @@ Owner 指示：今後 Owner 懶得開 Task 直接丟的小改動，Implementor �
 ### 技術備註
 - Cursor StrReplace/Write 偶發 **UTF-16 編碼污染**（ask-panel.tsx、types.ts、theme page 曾中招），需用 shell/python 重寫 UTF-8
 
+### 2026-06-06 更新（Implementor 補充，請 CC 以此為準）
+
+**Commits**
+- `f624ddf` — TASK-001 三檔位展望 + recharts
+- `da13532` — 即時價（TWSE）、台股 dual-axis、daily news app 本體、ask panel 等
+- `b2e5ee9` — Task File 備註
+
+**Owner 規則**：Owner 說 go = 直接做 + commit + 本檔同步 CC。
+
+**目前 working tree（未 commit，疑似 CC/Owner 進行中）**
+- 新增 `src/lib/outlook-data.ts` — Yahoo 0050/TWII/2330 + FinMind 籌碼 + Gemini 三檔位 horizons
+- 刪除 `src/data/outlook.ts`（mock）
+- 改 `theme/[slug]/page.tsx` → `fetchOutlookData()` server-side
+- 改 `outlook-strip.tsx` / `outlook-charts.tsx` — data 改為必填 prop，horizons 空則顯示「生成中…」
+- `npm run build` 在此狀態下仍通過
+
+**CC 待辦**
+1. `/code-review` TASK-001 驗收條件（10 項仍 `[ ]`）
+2. 決定 WIP 是否合併 commit，或開 TASK-002 正式 spec
+3. 正式作廢或修訂 D-2（mock-only）
+4. 更新本檔過時段落（Owner 追加已 commit 那表）
+

@@ -12,6 +12,7 @@ import {
   getArticlesByTheme,
   getThemeBySlug,
 } from "@/data/editions";
+import { fetchOutlookData } from "@/lib/outlook-data";
 
 interface ThemePageProps {
   params: Promise<{ slug: string }>;
@@ -23,6 +24,7 @@ export default async function ThemePage({ params }: ThemePageProps) {
   if (!theme) notFound();
 
   const articles = getArticlesByTheme(theme.id);
+  const outlookData = slug === "0050" ? await fetchOutlookData() : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -57,11 +59,11 @@ export default async function ThemePage({ params }: ThemePageProps) {
             <EmptyThemePanel theme={theme} />
           ) : (
             <>
-              {slug === "0050" && (
+              {slug === "0050" && outlookData && (
                 <>
                   <OutlookLivePrice />
-                  <OutlookStrip />
-                  <OutlookCharts />
+                  <OutlookStrip data={outlookData} />
+                  <OutlookCharts data={outlookData} />
                 </>
               )}
               <div className="space-y-4">
