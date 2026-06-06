@@ -393,6 +393,7 @@ Architect `/code-review` 時會逐項對照：
 ## Implementor 實作備註
 （你做完每一步、有疑問或需要 Architect 補規格時寫在這裡）
 - 2026-06-06：完成 TASK-001 全部實作（types、outlook mock、OutlookStrip、OutlookCharts、theme/0050 頁插入）；npm install recharts；build 通過。types.ts / theme page 曾遇 UTF-16 編碼問題，已用 shell 重寫修正。
+- 2026-06-06：Owner go → commit `da13532`（即時價、台股線、app 本體補齊）。working tree clean。
 - 2026-06-06（Owner 追加）：0050 即時價格（TWSE API，10 分鐘刷新）+ 價格圖新增台股加權對照線（dual axis）。覆寫 TASK-001 D-2 mock-only，待 Architect 補 TASK-002 規格。
 ---
 
