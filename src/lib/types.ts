@@ -81,3 +81,40 @@ export interface OutlookData {
   flowSeries: FlowPoint[];
   tsmcSeries: TsmcPoint[];
 }
+
+export interface Holding {
+  rank: number;
+  symbol: string;
+  name: string;
+  weight: number;
+  sector: string;
+}
+
+export interface HoldingsData {
+  asOf: string;
+  source: string;
+  topHoldings: Holding[];
+  totalWeight: number;
+}
+
+export interface DividendRecord {
+  exDate: string;
+  amount: number;
+  payDate?: string;
+}
+
+export interface YieldData {
+  asOf: string;
+  currentPrice: number;
+  ttmDividend: number;
+  annualYield: number;
+  history: DividendRecord[];
+  nextExDate: string | null;
+  nextExNote: string;
+  source: "finmind" | "fallback";
+}
+
+export interface PositionData {
+  shares: number;
+  avgCost: number;
+}

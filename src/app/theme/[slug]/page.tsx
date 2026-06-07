@@ -2,16 +2,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
 import { EmptyThemePanel } from "@/components/empty-theme";
+import { HoldingsCard } from "@/components/holdings-card";
 import { ArrowLeftIcon } from "@/components/icons";
+import { MyPosition } from "@/components/my-position";
 import { OutlookCharts } from "@/components/outlook-charts";
 import { OutlookLivePrice } from "@/components/outlook-live-price";
 import { OutlookStrip } from "@/components/outlook-strip";
 import { ThemeSidebar } from "@/components/theme-sidebar";
+import { YieldCard } from "@/components/yield-card";
 import {
   currentEdition,
   getArticlesByTheme,
   getThemeBySlug,
 } from "@/data/editions";
+import { fetchYieldData } from "@/lib/dividend-data";
 import { fetchOutlookData } from "@/lib/outlook-data";
 
 interface ThemePageProps {
@@ -24,7 +28,15 @@ export default async function ThemePage({ params }: ThemePageProps) {
   if (!theme) notFound();
 
   const articles = getArticlesByTheme(theme.id);
-  const outlookData = slug === "0050" ? await fetchOutlookData() : null;
+
+  let outlookData = null;
+  let yieldData = null;
+  if (slug === "0050") {
+    outlookData = await fetchOutlookData();
+    const lastPrice =
+      outlookData.priceSeries[outlookData.priceSeries.length - 1]?.price ?? 0;
+    yieldData = await fetchYieldData(lastPrice);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -59,10 +71,15 @@ export default async function ThemePage({ params }: ThemePageProps) {
             <EmptyThemePanel theme={theme} />
           ) : (
             <>
-              {slug === "0050" && outlookData && (
+              {slug === "0050" && outlookData && yieldData && (
                 <>
                   <OutlookLivePrice />
+                  <MyPosition />
                   <OutlookStrip data={outlookData} />
+                  <div className="mb-8 grid gap-4 md:grid-cols-2">
+                    <HoldingsCard />
+                    <YieldCard data={yieldData} />
+                  </div>
                   <OutlookCharts data={outlookData} />
                 </>
               )}

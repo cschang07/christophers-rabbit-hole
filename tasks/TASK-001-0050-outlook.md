@@ -24,7 +24,7 @@ Owner 持有 0050，希望除了 daily news 之外，每天打開 0050 theme 頁
 
 ## 已拍板決策（不可更動）
 - **D-1**：分數採 0–100 制，不用 -50~+50（決定日：2026-06-05，by Owner）
-- **D-2**：第一階段全部 mock，不接 Gemini 也不接股價 API
+- **~~D-2~~**：~~第一階段全部 mock，不接 Gemini 也不接股價 API~~ ⚠️ **正式作廢 2026-06-07**。Owner 授權後已全面切換真實資料（Yahoo Finance + FinMind + Gemini-3.5-flash），mock `src/data/outlook.ts` 已刪除，commit `ad89a65`。
 - **D-3**：圖表用 `recharts`（已由 Architect 推薦、Owner 授權）
 - **D-4**：只動 `/theme/0050` 頁，不動首頁、不動文章內頁、不動 daily news 卡片
 - **D-5**：對應位置在 theme header 下方、daily articles 上方（不是側邊欄、不是分頁）
@@ -375,18 +375,18 @@ import { OutlookCharts } from "@/components/outlook-charts";
 ---
 
 ## 驗收條件
-Architect `/code-review` 時會逐項對照：
+**CC code-review 完成 2026-06-07 — 全部通過**
 
-- [ ] `npm install recharts` 完成，且 `package.json` 反映
-- [ ] `npm run dev` 可正常啟動，無 compile error
-- [ ] 開啟 `/theme/0050` 看到三檔位卡片並排
-- [ ] 三張卡片數字、分數條位置、方向標籤、briefing、主因正確顯示
-- [ ] 圖表 tab 切換正常，三張圖都能渲染
-- [ ] 開啟 `/theme/ai` 等其他 theme 頁，**沒有** 出現 Outlook 區塊
-- [ ] 首頁 `/` 沒有變化
-- [ ] 文章內頁 `/article/0050-daily-briefing-0605` 沒有變化
-- [ ] 沒有 console error / type error
-- [ ] 視覺風格延續現有 stone palette + serif title
+- [x] `npm install recharts` 完成，且 `package.json` 反映（`recharts@^3.8.1`）
+- [x] `npm run dev` 可正常啟動，無 compile error
+- [x] 開啟 `/theme/0050` 看到三檔位卡片並排
+- [x] 三張卡片數字、分數條位置、方向標籤、briefing、主因正確顯示（Gemini 生成）
+- [x] 圖表 tab 切換正常，三張圖都能渲染（各 tab 獨立 ResponsiveContainer）
+- [x] 開啟 `/theme/ai` 等其他 theme 頁，**沒有** 出現 Outlook 區塊（`slug === "0050"` guard）
+- [x] 首頁 `/` 沒有變化
+- [x] 文章內頁 `/article/0050-daily-briefing-0605` 沒有變化
+- [x] 沒有 console error / type error
+- [x] 視覺風格延續現有 stone palette + serif title
 
 ---
 
@@ -444,9 +444,11 @@ Owner 指示：今後 Owner 懶得開 Task 直接丟的小改動，Implementor �
 - 改 `outlook-strip.tsx` / `outlook-charts.tsx` — data 改為必填 prop，horizons 空則顯示「生成中…」
 - `npm run build` 在此狀態下仍通過
 
-**CC 待辦**
-1. `/code-review` TASK-001 驗收條件（10 項仍 `[ ]`）
-2. 決定 WIP 是否合併 commit，或開 TASK-002 正式 spec
-3. 正式作廢或修訂 D-2（mock-only）
-4. 更新本檔過時段落（Owner 追加已 commit 那表）
+**CC close-out 2026-06-07**
+- WIP 已 commit：`ad89a65` feat(0050): 真實市場資料 outlook + CC 同步備註
+- 所有 10 項驗收條件通過（見上）
+- D-2 正式作廢（見已拍板決策）
+- TASK-001 **CLOSED** ✓
+
+**TASK-002（選擇性）**：冷啟動 9s 優化（horizons cache miss 時串流顯示其他資料）— 等 Owner say go 才動。
 
