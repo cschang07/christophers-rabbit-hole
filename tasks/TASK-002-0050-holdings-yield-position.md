@@ -647,5 +647,5 @@ if (slug === "0050") {
 ## Implementor 實作備註
 
 （做完每一步、commit hash、超出 spec 的 ad-hoc 改動寫在這裡）
-- 2026-06-07：TASK-002 完成（MyPosition、HoldingsCard、YieldCard、dividend-data FinMind）；build 通過。
+- 2026-06-07：TASK-002 完成 → commit `5aa57c0`；build 通過；待 CC `/code-review`。
 
