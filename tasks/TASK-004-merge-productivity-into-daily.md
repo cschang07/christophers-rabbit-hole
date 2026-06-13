@@ -84,4 +84,4 @@ Owner 決定：**以 christopher-daily 為基底，把 productivity-app 整個�
 - 2026-06-13 Stage 0 完成：搬入 backend/、docker-compose.yml、Dockerfile、.dockerignore、next.config.ts afterFiles rewrites、src/lib/api.ts、新聞移至 /news、生產力 sidebar shell + 6 placeholder 頁、/ 重導 /todo。
 - Rewrites 依據：Next 16 docs `rewrites.md` 路由順序 — static/route handlers 先於 afterFiles；實測 `/api/ask` 走 Next handler（backend 無此路由會 404），`/api/health` 與 `/api/tasks` 經 rewrite 到 backend 200。
 - Docker QC：`npm run build` 通過；`docker compose run` web on :3002 驗證 /news、/todo、/api/health、/api/tasks OK。`:3000` 被既有 productivity-app-frontend 佔用，需先 stop 該容器才能 `docker compose up` 綁定 3000。
-- commit: （待填 hash）
+- commit: 4193f00
