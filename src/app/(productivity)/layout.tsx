@@ -1,14 +1,18 @@
-import { ProductivitySidebar } from "@/components/productivity-sidebar";
+'use client';
 
-export default function ProductivityLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+import { PomodoroProvider } from '@/context/pomodoro';
+import { RecorderProvider } from '@/context/recorder';
+import { ProductivitySidebar } from '@/components/productivity-sidebar';
+
+export default function ProductivityLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen">
-      <ProductivitySidebar />
-      <main className="min-w-0 flex-1">{children}</main>
-    </div>
+    <PomodoroProvider>
+      <RecorderProvider>
+        <div className="flex min-h-screen">
+          <ProductivitySidebar />
+          <main className="prd-app min-w-0 flex-1">{children}</main>
+        </div>
+      </RecorderProvider>
+    </PomodoroProvider>
   );
 }
