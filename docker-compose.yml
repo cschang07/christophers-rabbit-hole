@@ -20,7 +20,7 @@ services:
       DATABASE_URL: postgresql+psycopg2://app:app@db:5432/productivity
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3000/api/google/callback}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3008/api/google/callback}
       TIMEZONE: ${TIMEZONE:-Asia/Taipei}
       TZ: ${TIMEZONE:-Asia/Taipei}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3008:3008"
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       NODE_ENV: production
