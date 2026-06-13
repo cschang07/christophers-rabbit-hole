@@ -18,6 +18,15 @@ import {
 import { fetchYieldData } from "@/lib/dividend-data";
 import { fetchOutlookData } from "@/lib/outlook-data";
 
+const BADGE: Record<string, string> = {
+  "0050": "50",
+  "worldcup-2026": "WC",
+};
+
+function themeBadge(slug: string, name: string) {
+  return BADGE[slug] ?? name.slice(0, 2).toUpperCase();
+}
+
 interface ThemePageProps {
   params: Promise<{ slug: string }>;
 }
@@ -45,7 +54,7 @@ export default async function ThemePage({ params }: ThemePageProps) {
 
         <div className="min-w-0 flex-1">
           <Link
-            href="/"
+            href="/news"
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600"
           >
             <ArrowLeftIcon className="h-4 w-4" />
@@ -58,7 +67,7 @@ export default async function ThemePage({ params }: ThemePageProps) {
                 className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold text-white"
                 style={{ backgroundColor: theme.accent }}
               >
-                {theme.name.slice(0, 2)}
+                {themeBadge(theme.slug, theme.name)}
               </span>
               <div>
                 <h1 className="font-serif text-2xl text-stone-900">{theme.name}</h1>

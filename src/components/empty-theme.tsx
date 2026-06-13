@@ -9,7 +9,7 @@ interface EmptyThemeProps {
 export function EmptyThemeCard({ theme }: EmptyThemeProps) {
   return (
     <Link
-      href={`/theme/${theme.slug}`}
+      href={`/news/theme/${theme.slug}`}
       className="flex flex-col rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 p-5 transition-colors hover:border-stone-300 hover:bg-stone-50"
     >
       <div className="mb-4 flex items-center gap-3">

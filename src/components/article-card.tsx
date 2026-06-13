@@ -16,7 +16,7 @@ function formatTime(iso: string) {
 export function ArticleCard({ article, theme }: ArticleCardProps) {
   return (
     <Link
-      href={`/article/${article.slug}`}
+      href={`/news/article/${article.slug}`}
       className="group block rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm transition-all hover:border-stone-300 hover:shadow-md"
     >
       <div className="mb-3 flex items-center gap-2 text-xs text-stone-400">

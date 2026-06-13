@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DM_Sans, Newsreader } from "next/font/google";
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -16,7 +15,7 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   title: "Christopher Daily",
-  description: "Personalized daily news discovery",
+  description: "Personal productivity and daily news",
 };
 
 export default function RootLayout({
@@ -31,8 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full" suppressHydrationWarning>
-        <SiteHeader />
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   );

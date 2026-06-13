@@ -62,7 +62,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <Link
-        href={`/theme/${theme.slug}`}
+        href={`/news/theme/${theme.slug}`}
         className="mb-8 inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600"
       >
         <ArrowLeftIcon className="h-4 w-4" />
@@ -115,7 +115,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {related.map((rel) => (
               <li key={rel!.id}>
                 <Link
-                  href={`/article/${rel!.slug}`}
+                  href={`/news/article/${rel!.slug}`}
                   className="text-sm text-stone-600 underline decoration-stone-300 underline-offset-2 transition-colors hover:text-stone-900 hover:decoration-stone-500"
                 >
                   {rel!.title}

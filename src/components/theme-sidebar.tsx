@@ -23,7 +23,7 @@ export function ThemeSidebar({ themes, activeSlug }: ThemeSidebarProps) {
           return (
             <li key={theme.id}>
               <Link
-                href={`/theme/${theme.slug}`}
+                href={`/news/theme/${theme.slug}`}
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                   isActive
                     ? "bg-white font-medium text-stone-900 shadow-sm ring-1 ring-stone-200/80"
