@@ -43,8 +43,8 @@ export function ProductivitySidebar() {
 
   return (
     <aside className="sticky top-0 flex h-screen w-52 shrink-0 flex-col border-r border-stone-200 bg-white px-3 py-5">
-      <Link href="/todo" className="mb-6 px-3 font-serif text-lg tracking-tight text-teal-800">
-        Productivity
+      <Link href="/todo" className="mb-4 px-3 font-serif text-sm leading-snug tracking-tight text-teal-800">
+        Christopher's<br />Rabbit Hole
       </Link>
       <nav className="flex flex-1 flex-col gap-1">
         {NAV.map((item) => {
