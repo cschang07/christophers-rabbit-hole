@@ -8,16 +8,16 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..google_sync import SCOPES, get_credential_row, run_sync
+from ..google_tokens import oauth_client_credentials
 from ..models import GoogleCredential, GoogleTombstone
 
 router = APIRouter(prefix="/api/google", tags=["google"])
 
 
 def _client_config():
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    client_id, client_secret = oauth_client_credentials()
     redirect_uri = os.environ.get(
-        "GOOGLE_REDIRECT_URI", "http://localhost:3000/api/google/callback"
+        "GOOGLE_REDIRECT_URI", "http://localhost:3008/api/google/callback"
     )
     if not client_id or not client_secret:
         return None

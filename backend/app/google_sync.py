@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from .models import Event, GoogleCredential, GoogleTombstone
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 TZ_NAME = os.environ.get("TIMEZONE", "Asia/Taipei")
 TZ = ZoneInfo(TZ_NAME)
 
@@ -29,7 +29,9 @@ def get_credential_row(db: Session) -> GoogleCredential | None:
 
 
 def _service(db: Session, row: GoogleCredential):
-    creds = Credentials.from_authorized_user_info(json.loads(row.token_json), SCOPES)
+    info = json.loads(row.token_json)
+    scopes = info.get("scopes") or SCOPES
+    creds = Credentials.from_authorized_user_info(info, scopes)
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         row.token_json = creds.to_json()

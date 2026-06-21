@@ -122,6 +122,8 @@ function EventModal({ event, defaultDate, onSaved, onDeleted, onClose }: {
   );
 }
 
+const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
 export default function CalendarPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -131,7 +133,6 @@ export default function CalendarPage() {
   const [modal, setModal] = useState<{ date: string } | { event: CalEvent } | null>(null);
   const [google, setGoogle] = useState<GoogleStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState('');
 
   const days = gridDays(year, month);
   const rangeStart = ymd(days[0]) + 'T00:00:00';
@@ -143,31 +144,37 @@ export default function CalendarPage() {
     try {
       const [evs, ts] = await Promise.all([
         api.get<CalEvent[]>(`/events?start=${rangeStart}&end=${rangeEnd}`),
-        api.get<CalTask[]>('/tasks'),
+        api.get<CalTask[]>('/tasks?list_type=work'),
       ]);
       setEvents(evs ?? []);
       setTasks(ts ?? []);
     } catch (err) { console.error(err); }
   }, [rangeStart, rangeEnd]);
 
-  useEffect(() => { reload(); }, [reload]);
-
-  const runSync = useCallback(async () => {
-    setSyncing(true); setSyncMsg('');
-    try {
-      const r = await api.post<SyncResult>('/google/sync', {});
-      setSyncMsg(r ? `Synced: ${r.pulled} pulled, ${r.pushed} pushed` : 'Synced');
-      await reload();
-    } catch { setSyncMsg('Sync failed — see backend logs'); }
-    finally { setSyncing(false); }
-  }, [reload]);
+  const syncAndReload = useCallback(async (quiet = false) => {
+    if (google?.connected) {
+      if (!quiet) setSyncing(true);
+      try { await api.post<SyncResult>('/google/sync', {}); }
+      catch (err) { console.error(err); }
+      finally { if (!quiet) setSyncing(false); }
+    }
+    await reload();
+  }, [google?.connected, reload]);
 
   useEffect(() => {
-    api.get<GoogleStatus>('/google/status').then((st) => {
-      if (st) { setGoogle(st); if (st.connected) runSync(); }
-    }).catch(console.error);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    api.get<GoogleStatus>('/google/status').then(setGoogle).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (google === null) return;
+    syncAndReload(true);
+  }, [google, year, month, syncAndReload]);
+
+  useEffect(() => {
+    if (!google?.connected) return;
+    const id = setInterval(() => syncAndReload(true), SYNC_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [google?.connected, syncAndReload]);
 
   const connectGoogle = async () => {
     try { const r = await api.get<{ url: string }>('/google/auth-url'); if (r) window.location.href = r.url; }
@@ -178,7 +185,6 @@ export default function CalendarPage() {
     if (!confirm('Disconnect Google Calendar? Local copies of events are kept.')) return;
     await api.post('/google/disconnect', {});
     setGoogle((g) => g ? { ...g, connected: false } : g);
-    setSyncMsg('');
   };
 
   const shiftMonth = (delta: number) => {
@@ -209,8 +215,7 @@ export default function CalendarPage() {
           )}
           {google?.connected && (
             <>
-              <span className="sync-msg muted">{syncing ? 'Syncing…' : syncMsg}</span>
-              <button className="btn secondary small" onClick={runSync} disabled={syncing}>⟳ Sync</button>
+              {syncing && <span className="sync-msg muted">Syncing…</span>}
               <button className="btn secondary small" title="Disconnect Google" onClick={disconnectGoogle}>✕</button>
             </>
           )}
@@ -265,8 +270,14 @@ export default function CalendarPage() {
         <EventModal
           event={modalEvent}
           defaultDate={modalDate}
-          onSaved={(saved) => setEvents((prev) => [...prev.filter((ev) => ev.id !== saved.id), saved])}
-          onDeleted={(id) => setEvents((prev) => prev.filter((ev) => ev.id !== id))}
+          onSaved={async (saved) => {
+            setEvents((prev) => [...prev.filter((ev) => ev.id !== saved.id), saved]);
+            await syncAndReload(true);
+          }}
+          onDeleted={async (id) => {
+            setEvents((prev) => prev.filter((ev) => ev.id !== id));
+            await syncAndReload(true);
+          }}
           onClose={() => setModal(null)}
         />
       )}

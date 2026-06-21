@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import TASK_PRIORITIES, TASK_STATUSES, Task
+from ..models import TASK_LIST_TYPES, TASK_PRIORITIES, TASK_STATUSES, Task
 from ..schemas import TaskCreate, TaskOut, TaskUpdate
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -18,24 +18,39 @@ def _get_task(db: Session, task_id: int) -> Task:
     return task
 
 
-def _validate(status: str | None, priority: str | None):
+def _validate(
+    status: str | None,
+    priority: str | None,
+    list_type: str | None = None,
+):
     if status is not None and status not in TASK_STATUSES:
         raise HTTPException(422, f"status must be one of {TASK_STATUSES}")
     if priority is not None and priority not in TASK_PRIORITIES:
         raise HTTPException(422, f"priority must be one of {TASK_PRIORITIES}")
+    if list_type is not None and list_type not in TASK_LIST_TYPES:
+        raise HTTPException(422, f"list_type must be one of {TASK_LIST_TYPES}")
 
 
 @router.get("", response_model=list[TaskOut])
-def list_tasks(db: Session = Depends(get_db)):
-    return db.scalars(select(Task).order_by(Task.sort_order, Task.id)).all()
+def list_tasks(
+    list_type: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    _validate(None, None, list_type)
+    return db.scalars(
+        select(Task)
+        .where(Task.list_type == list_type)
+        .order_by(Task.sort_order, Task.id)
+    ).all()
 
 
 @router.post("", response_model=TaskOut, status_code=201)
 def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
-    _validate(payload.status, payload.priority)
+    _validate(payload.status, payload.priority, payload.list_type)
     max_order = db.scalar(
         select(func.coalesce(func.max(Task.sort_order), 0.0)).where(
-            Task.status == payload.status
+            Task.status == payload.status,
+            Task.list_type == payload.list_type,
         )
     )
     task = Task(**payload.model_dump(), sort_order=max_order + 1.0)
@@ -62,7 +77,8 @@ def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)
         if "sort_order" not in data:
             max_order = db.scalar(
                 select(func.coalesce(func.max(Task.sort_order), 0.0)).where(
-                    Task.status == new_status
+                    Task.status == new_status,
+                    Task.list_type == task.list_type,
                 )
             )
             data["sort_order"] = max_order + 1.0

@@ -18,7 +18,7 @@ export default function PomodoroPage() {
   const [stats, setStats] = useState<PomodoroStats | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  useEffect(() => { api.get<Task[]>('/tasks').then((t) => setTasks(t ?? [])).catch(console.error); }, []);
+  useEffect(() => { api.get<Task[]>('/tasks?list_type=work').then((t) => setTasks(t ?? [])).catch(console.error); }, []);
   useEffect(() => { api.get<PomodoroStats>('/pomodoro/stats').then((s) => setStats(s)).catch(console.error); }, [workCount]);
 
   const openTasks = tasks.filter((t) => t.status !== 'done');

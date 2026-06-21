@@ -7,6 +7,7 @@ class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=300)
     description: str = ""
     status: str = "todo"
+    list_type: str = "work"
     priority: str = "medium"
     due_date: date | None = None
 
@@ -96,6 +97,7 @@ class TaskOut(BaseModel):
     title: str
     description: str
     status: str
+    list_type: str
     priority: str
     due_date: date | None
     sort_order: float

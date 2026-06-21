@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
+export type TaskListType = 'personal' | 'work';
+
 export interface Task {
   id: number;
   title: string;
   description: string;
   status: 'todo' | 'in_progress' | 'done';
+  list_type: TaskListType;
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
   completed_at: string | null;
@@ -25,26 +28,26 @@ export interface TaskInput {
   sort_order?: number;
 }
 
-export function useTasks() {
+export function useTasks(listType: TaskListType) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      setTasks((await api.get<Task[]>('/tasks')) ?? []);
+      setTasks((await api.get<Task[]>(`/tasks?list_type=${listType}`)) ?? []);
       setError(null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [listType]);
 
   useEffect(() => { reload(); }, [reload]);
 
   const createTask = async (data: TaskInput): Promise<Task> => {
-    const task = await api.post<Task>('/tasks', data);
+    const task = await api.post<Task>('/tasks', { ...data, list_type: listType });
     if (!task) throw new Error('No response');
     setTasks((prev) => [...prev, task]);
     return task;

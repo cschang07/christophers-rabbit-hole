@@ -18,6 +18,7 @@ from .database import Base
 
 TASK_STATUSES = ("todo", "in_progress", "done")
 TASK_PRIORITIES = ("low", "medium", "high")
+TASK_LIST_TYPES = ("personal", "work")
 
 
 class Task(Base):
@@ -27,6 +28,7 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(300))
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(20), default="todo", index=True)
+    list_type: Mapped[str] = mapped_column(String(20), default="work", index=True)
     priority: Mapped[str] = mapped_column(String(10), default="medium")
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     sort_order: Mapped[float] = mapped_column(Float, default=0.0)

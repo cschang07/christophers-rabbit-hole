@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
@@ -21,6 +22,7 @@ services:
       DATABASE_URL: postgresql+psycopg2://app:app@db:5432/productivity
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_TOKEN_FILE: ${GOOGLE_TOKEN_FILE:-/data/google_token.json}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3008/api/google/callback}
       TIMEZONE: ${TIMEZONE:-Asia/Taipei}
       TZ: ${TIMEZONE:-Asia/Taipei}
@@ -29,6 +31,7 @@ services:
       OAUTHLIB_INSECURE_TRANSPORT: "1"
     volumes:
       - recordings:/data/recordings
+      - ${HERMES_DIR:-${HOME}/.hermes}/google_token.json:/data/google_token.json:ro
     depends_on:
       db:
         condition: service_healthy
@@ -37,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "3008:3008"
     environment:

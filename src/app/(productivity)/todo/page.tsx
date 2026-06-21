@@ -30,7 +30,7 @@ function TaskRow({ task, onToggle, onClick }: { task: Task; onToggle: () => void
 }
 
 export default function TodoPage() {
-  const { tasks, loading, error, createTask, updateTask, deleteTask } = useTasks();
+  const { tasks, loading, error, createTask, updateTask, deleteTask } = useTasks('personal');
   const [quickTitle, setQuickTitle] = useState('');
   const [showDone, setShowDone] = useState(false);
   const [editing, setEditing] = useState<Task | 'new' | null>(null);

@@ -31,7 +31,7 @@ function Card({ task, dragging, onDragStart, onDragEnd, onClick }: {
 }
 
 export default function BoardPage() {
-  const { tasks, setTasks, loading, error, createTask, updateTask, deleteTask } = useTasks();
+  const { tasks, setTasks, loading, error, createTask, updateTask, deleteTask } = useTasks('work');
   const [editing, setEditing] = useState<Task | { status: Task['status'] } | null>(null);
   const [dragId, setDragId] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<{ status: Task['status']; index: number } | null>(null);
