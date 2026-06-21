@@ -220,6 +220,21 @@ export default function CalendarPage() {
           <button className="btn" onClick={() => setModal({ date: todayStr })}>+ Event</button>
         </div>
       </div>
+      <div className="calendar-legend" aria-label="事件顏色說明">
+        <span className="calendar-legend-label">圖例</span>
+        <span className="calendar-legend-item">
+          <span className="chip event-chip all-day">全天</span>
+          全天事件
+        </span>
+        <span className="calendar-legend-item">
+          <span className="chip event-chip"><span className="chip-time">09:00</span>定時</span>
+          有時間的事件
+        </span>
+        <span className="calendar-legend-item">
+          <span className="chip task-chip">✓ 待辦</span>
+          到期任務
+        </span>
+      </div>
       <div className="calendar-grid">
         {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
         {days.map((d) => {

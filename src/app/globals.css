@@ -128,6 +128,10 @@ body {
   .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .calendar-header h1 { margin: 0; }
   .calendar-controls { display: flex; gap: 8px; align-items: center; }
+  .calendar-legend { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 16px; padding: 10px 14px; font-size: 13px; color: var(--text); background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); align-items: center; }
+  .calendar-legend-label { font-weight: 700; color: var(--muted); margin-right: 4px; }
+  .calendar-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .calendar-legend-item .chip { cursor: default; pointer-events: none; }
   .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--border); gap: 1px; }
   .calendar-weekday { background: var(--bg-2); padding: 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
   .calendar-day { background: var(--bg-2); min-height: 104px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
