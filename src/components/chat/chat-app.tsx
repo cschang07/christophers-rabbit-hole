@@ -17,6 +17,7 @@ export function ChatApp() {
   const [sending, setSending] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     refreshSessions();
@@ -99,12 +100,25 @@ export function ChatApp() {
         sessionId = body.session.id;
         setActiveSessionId(sessionId);
         setSessions((prev) => [body.session, ...prev]);
+
+        const autoTitle = generateAutoTitle(userText);
+        if (autoTitle) {
+          setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, title: autoTitle } : s)));
+          void fetch("/api/chat/session", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: sessionId, title: autoTitle }),
+          });
+        }
       }
 
+      const controller = new AbortController();
+      abortRef.current = controller;
       const res = await fetch("/api/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: sessionId, message: userText }),
+        signal: controller.signal,
       });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
@@ -123,10 +137,25 @@ export function ChatApp() {
 
       refreshSessions();
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        appendToLastAssistant("\n\n（已停止生成）");
+        return;
+      }
       setLastAssistantContent(err instanceof Error ? err.message : "發生錯誤，請稍後再試。");
     } finally {
+      abortRef.current = null;
       setSending(false);
     }
+  }
+
+  function stopGenerating() {
+    abortRef.current?.abort();
+  }
+
+  function generateAutoTitle(text: string): string {
+    const normalized = text.replace(/\s+/g, " ").trim();
+    if (!normalized) return "";
+    return normalized.length > 20 ? `${normalized.slice(0, 20)}…` : normalized;
   }
 
   function appendToLastAssistant(delta: string) {
@@ -228,6 +257,15 @@ export function ChatApp() {
               >
                 <SendIcon className="h-4 w-4" />
               </button>
+              {sending && (
+                <button
+                  type="button"
+                  onClick={stopGenerating}
+                  className="rounded-xl border border-stone-300 px-3 py-2 text-xs text-stone-600 hover:bg-stone-50"
+                >
+                  停止生成
+                </button>
+              )}
             </div>
           </form>
         </div>

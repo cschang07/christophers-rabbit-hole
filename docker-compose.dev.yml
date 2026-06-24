@@ -1,0 +1,32 @@
+services:
+  # Optional hot-reload dev web.
+  # Uses host port 3009 to avoid conflicting with the production web on 3008.
+  web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    profiles: ["dev"]
+    working_dir: /app
+    command: sh -c "npm run dev -- --hostname 0.0.0.0 --port 3008"
+    ports:
+      - "3009:3008"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      HERMES_API_BASE_URL: http://host.docker.internal:8642
+      HERMES_API_KEY: ${HERMES_API_KEY:-}
+      SITE_PASSWORD: ${SITE_PASSWORD:-}
+      NODE_ENV: development
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app
+      - web_dev_node_modules:/app/node_modules
+      - web_dev_next:/app/.next
+    depends_on:
+      - backend
+
+volumes:
+  web_dev_node_modules:
+  web_dev_next:

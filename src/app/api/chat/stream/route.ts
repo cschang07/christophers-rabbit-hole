@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { streamSessionChat } from "@/lib/hermes-chat";
+import { HermesChatError, streamSessionChat } from "@/lib/hermes-chat";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -22,6 +22,12 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err) {
-    return Response.json({ error: String(err) }, { status: 500 });
+    if (err instanceof HermesChatError) {
+      if (err.status >= 500) {
+        return Response.json({ error: "Hermes 目前無法連線，請稍後再試。" }, { status: 503 });
+      }
+      return Response.json({ error: err.message }, { status: err.status });
+    }
+    return Response.json({ error: "伺服器暫時異常，請稍後再試。" }, { status: 500 });
   }
 }

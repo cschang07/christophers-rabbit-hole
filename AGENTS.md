@@ -21,3 +21,15 @@ OrbStack VM.**
 - To test: hit the **already-running container** at `http://localhost:3008`. Pick up
   source edits via the container's hot reload, or rebuild the container. Run `docker ps`
   to confirm how the app is served before assuming anything.
+
+## Optional fast dev loop (safe port)
+
+If you need hot reload for frontend iteration, use the optional `web-dev` profile:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up -d web-dev
+```
+
+- `web-dev` is mapped to `http://localhost:3009` (never 3008), so it won't collide with
+  the production `web` container on `3008`.
+- Keep production verification on `http://localhost:3008`.

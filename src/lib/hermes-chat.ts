@@ -33,7 +33,7 @@ export interface HermesMessage {
   finish_reason?: string;
 }
 
-class HermesChatError extends Error {
+export class HermesChatError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);
   }
@@ -54,7 +54,11 @@ async function hermesFetch(path: string, init: RequestInit = {}): Promise<Respon
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  return fetch(`${baseUrl}${path}`, { ...init, headers, cache: "no-store" });
+  try {
+    return await fetch(`${baseUrl}${path}`, { ...init, headers, cache: "no-store" });
+  } catch {
+    throw new HermesChatError("Hermes upstream unreachable", 503);
+  }
 }
 
 async function parseJsonOrThrow(res: Response): Promise<any> {
