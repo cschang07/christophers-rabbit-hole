@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { ChatApp } from "@/components/chat/chat-app";
 
 export default function HomePage() {
-  redirect("/todo");
+  return <ChatApp />;
 }
