@@ -6,15 +6,43 @@ import { useEffect, useState } from "react";
 import { usePomodoro, fmtTime, type PomodoroPhase } from "@/context/pomodoro";
 import { useRecorder, fmtElapsed } from "@/context/recorder";
 
-const NAV = [
-  { href: "/todo", label: "To-Do", icon: "✓" },
-  { href: "/board", label: "Board", icon: "▦" },
-  { href: "/calendar", label: "Calendar", icon: "▤" },
-  { href: "/notes", label: "Notes", icon: "✎" },
-  { href: "/pomodoro", label: "Pomodoro", icon: "◷" },
-  { href: "/game", label: "Break Game", icon: "★" },
-  { href: "/news", label: "News", icon: "◈" },
-] as const;
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  match: (pathname: string) => boolean;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "新聞",
+    items: [
+      { href: "/", label: "今日新聞", icon: "◈", match: (p) => p === "/" || p.startsWith("/news") },
+    ],
+  },
+  {
+    label: "生產力",
+    items: [
+      { href: "/todo", label: "To-Do", icon: "✓", match: (p) => p === "/todo" || p.startsWith("/todo/") },
+      { href: "/board", label: "Board", icon: "▦", match: (p) => p === "/board" || p.startsWith("/board/") },
+      { href: "/calendar", label: "Calendar", icon: "▤", match: (p) => p === "/calendar" || p.startsWith("/calendar/") },
+      { href: "/notes", label: "Notes", icon: "✎", match: (p) => p === "/notes" || p.startsWith("/notes/") },
+      { href: "/pomodoro", label: "Pomodoro", icon: "◷", match: (p) => p === "/pomodoro" || p.startsWith("/pomodoro/") },
+      { href: "/game", label: "Break Game", icon: "★", match: (p) => p === "/game" || p.startsWith("/game/") },
+    ],
+  },
+  {
+    label: "其他",
+    items: [
+      { href: "/chat", label: "Chat", icon: "✦", match: (p) => p === "/chat" || p.startsWith("/chat/") },
+    ],
+  },
+];
 
 const PHASE_SHORT: Record<PomodoroPhase, string> = { work: "Focus", shortBreak: "Short Break", longBreak: "Long Break" };
 
@@ -41,27 +69,37 @@ function MiniRecorder() {
 
 function SidebarNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <nav className="flex flex-1 flex-col gap-1">
-      {NAV.map((item) => {
-        const isActive =
-          item.href === "/news"
-            ? pathname.startsWith("/news")
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
-        return (
-          <Link key={item.href} href={item.href} onClick={onNavigate}
-            className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-              isActive ? "bg-teal-50 font-medium text-teal-900" : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
-            }`}>
-            <span className="w-5 text-center text-xs">{item.icon}</span>
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav className="flex flex-1 flex-col gap-4">
+      {NAV_GROUPS.map((group) => (
+        <div key={group.label}>
+          <p className="mb-1 px-3 text-[11px] font-medium uppercase tracking-widest text-stone-400">
+            {group.label}
+          </p>
+          <div className="flex flex-col gap-1">
+            {group.items.map((item) => {
+              const isActive = item.match(pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                    isActive ? "bg-teal-50 font-medium text-teal-900" : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                  }`}
+                >
+                  <span className="w-5 text-center text-xs">{item.icon}</span>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 }
 
-export function ProductivitySidebar() {
+export function AppSidebar() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -99,7 +137,7 @@ export function ProductivitySidebar() {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 max-w-[80vw] flex-col border-r border-stone-200 bg-white px-3 py-5 transition-transform duration-200 lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 max-w-[80vw] flex-col overflow-y-auto border-r border-stone-200 bg-white px-3 py-5 transition-transform duration-200 lg:hidden ${
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ height: "100dvh" }}
@@ -121,8 +159,8 @@ export function ProductivitySidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col border-r border-stone-200 bg-white px-3 py-5 lg:flex">
-        <Link href="/todo" className="mb-4 px-3 font-serif text-sm leading-snug tracking-tight text-teal-800">
+      <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col overflow-y-auto border-r border-stone-200 bg-white px-3 py-5 lg:flex">
+        <Link href="/" className="mb-4 px-3 font-serif text-sm leading-snug tracking-tight text-teal-800">
           Christopher&apos;s<br />Rabbit Hole
         </Link>
         <SidebarNav pathname={pathname} />

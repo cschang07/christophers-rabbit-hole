@@ -87,7 +87,7 @@ export default async function ThemePage({ params }: ThemePageProps) {
 
         <div className="min-w-0 flex-1">
           <Link
-            href="/news"
+            href="/"
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600"
           >
             <ArrowLeftIcon className="h-4 w-4" />

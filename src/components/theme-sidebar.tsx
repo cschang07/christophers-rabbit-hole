@@ -12,23 +12,6 @@ interface ThemeSidebarProps {
 export function ThemeSidebar({ themes, activeSlug }: ThemeSidebarProps) {
   return (
     <>
-      {/* Mobile top bar with home entry */}
-      <div className="-mx-4 mb-3 flex items-center justify-between px-4 lg:hidden">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-        >
-          <span className="text-base">☰</span>
-          <span>首頁</span>
-        </Link>
-        <Link
-          href="/news"
-          className="rounded-lg px-2 py-1.5 text-sm text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-        >
-          News
-        </Link>
-      </div>
-
       {/* Mobile: horizontal scrolling chip nav */}
       <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
         {themes.map((theme) => {
@@ -52,13 +35,6 @@ export function ThemeSidebar({ themes, activeSlug }: ThemeSidebarProps) {
 
       {/* Desktop: vertical sidebar */}
       <aside className="hidden w-52 shrink-0 lg:block">
-        <Link
-          href="/"
-          className="mb-3 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-stone-500 hover:bg-white hover:text-stone-900"
-        >
-          <span className="text-base">☰</span>
-          <span>Back Home</span>
-        </Link>
         <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-stone-400">
           Themes
         </p>

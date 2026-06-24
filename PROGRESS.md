@@ -8,12 +8,12 @@
 ## ⛔ 已知問題 / 待決策
 
 - **[待決策] TASK-002（選擇性）**：冷啟動 9s 優化——horizons cache miss 時串流顯示，等 Owner say go 才動
-- **[已知問題] 文章頁追問壞掉**：`AskPanel` → `/api/ask`（直打 Gemini `gemini-3.5-flash`）目前不能用。由 **TASK-006** 整碗改接 Hermes 取代，不單獨除錯。
-- **[規格已備，等 go] TASK-005 統一 App 外殼**：News 像獨立腫瘤（三套外殼）。決策 D1 統一 sidebar／D2 News=`/`／D3 Pomodoro 另案關。規格見 `tasks/TASK-005-unify-app-shell.md`。
-- **[規格已備，等 go] TASK-006 News Q&A 接 Hermes（Perplexity Discover）**：feed+文章底部問答、hybrid 取材（當頁優先、超範圍才 Tavily）、Hermes 串流＋引用。**依賴 TASK-005 先合併**。規格見 `tasks/TASK-006-news-ask-hermes-perplexity.md`。
+- **[已知問題] 文章頁追問壞掉**：`AskPanel` → `/api/ask`（直打 Gemini `gemini-3.5-flash`）目前不能用。由 **TASK-006** 整碗改接 Hermes 取代，不單獨除錯。TASK-005 完成後仍存在（範圍內未動），等 TASK-006 處理。
+- **[進行中] TASK-006 News Q&A 接 Hermes（Perplexity Discover）**：feed+文章底部問答、hybrid 取材（當頁優先、超範圍才 Tavily）、Hermes 串流＋引用。規格見 `tasks/TASK-006-news-ask-hermes-perplexity.md`。
 
 ## ✅ 近期完成（最新在上）
 
+- [2026-06-25] **TASK-005 CLOSED**：統一 App 外殼。新建 `(app)` route group + `AppLayout`，`ProductivitySidebar`→`AppSidebar`（三組 nav：新聞/生產力/其他）；News feed 搬到 `/`，Chat 搬到 `/chat`；砍掉 news 獨立 `SiteHeader`／舊 `(productivity)/layout.tsx`；順手清掉統一後變成重複的殼：`ThemeSidebar`／文章頁的「Back Home」連結、`ChatApp` 自帶的 pill nav 與 hamburger drawer（已由 AppSidebar 取代）、刪除未被引用的死碼 `chat-sidebar.tsx`。`tsc --noEmit`／`next build` 通過；容器內 curl 驗證 `/`、`/chat`、`/todo`、`/board`、`/calendar`、`/notes`、`/pomodoro`、`/game`、`/news/theme/0050`、`/news/article/0050-2026-06-25` 全部 200，sidebar 與 News 內容皆正確渲染。Branch：`feat/unify-shell-news-ask`。
 - [2026-06-25] cc 規劃：full review 後定方向——核心=Todo/Kanban/Calendar；News 去腫瘤＋接 Hermes 問答為當前重點；Pomodoro 之後關、Chat 優化後放。產出 TASK-005、TASK-006 規格，Owner 拍板 D1–D3（統一 sidebar／News=首頁／hybrid 取材）。
 - [2026-06-25] chore(collab)：把 `.cursor/` 協作規則納入版控＋ ignore `outputs/`（commit: 46b68f2）
 - [2026-06-25] feat(ui)：各頁 Back Home 連結、mobile 導覽列、chat 狗狗吉祥物、iOS 防自動放大（commit: 7d31924）
@@ -30,10 +30,10 @@
 
 ## 📍 中斷點
 
-cc 已完成 full review 與規劃，TASK-005／TASK-006 規格就緒、決策已拍板。**等 Owner 說「go」** → Cursor 先做 TASK-005（統一外殼，較單純的搬移），合併後再做 TASK-006（依賴 005 的 `(app)/` 路徑與 `/`＝feed）。
+TASK-005 已完成並在容器內驗證通過（branch `feat/unify-shell-news-ask`，尚未 merge main）。正在做 TASK-006（News Q&A 接 Hermes）。
 
 ## ⏭ 下一步
 
-1. **TASK-005｜統一 App 外殼（去腫瘤）** — `(app)` route group 共用外殼、`AppSidebar`、News=`/`、Chat→`/chat`。等 go。
-2. **TASK-006｜News Q&A 接 Hermes（Perplexity Discover）** — feed+文章問答、hybrid 取材、Hermes 串流＋引用。**接在 005 之後**。
+1. **TASK-006｜News Q&A 接 Hermes（Perplexity Discover）** — feed+文章問答、hybrid 取材、Hermes 串流＋引用。進行中。
+2. TASK-006 完成驗證後，merge `feat/unify-shell-news-ask` → `main`。
 3. （之後）Pomodoro feature-flag 關閉；Chat 體驗優化。

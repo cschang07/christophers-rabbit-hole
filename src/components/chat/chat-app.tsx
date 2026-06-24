@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FormattedAnswer } from "@/components/formatted-answer";
 import { SendIcon } from "@/components/icons";
@@ -12,7 +11,6 @@ export function ChatApp() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -110,16 +108,8 @@ export function ChatApp() {
   }
 
   return (
-    <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-5xl lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
-      <header className="flex items-center justify-between px-4 pb-2 pt-4">
-        <button
-          type="button"
-          className="rounded-md p-1 text-xl text-[#16243f]"
-          aria-label="menu"
-          onClick={() => setMenuOpen(true)}
-        >
-          ☰
-        </button>
+    <main className="mx-auto flex h-full min-h-dvh w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-3xl lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
+      <header className="flex items-center justify-center px-4 pb-2 pt-4">
         <div className="flex items-center gap-2">
           <div className="relative h-9 w-9 shrink-0">
             <svg viewBox="0 0 200 200" className="h-9 w-9">
@@ -138,22 +128,9 @@ export function ChatApp() {
             <p className="text-[9px] uppercase tracking-[0.18em] text-[#16243f]/70">Focus · Flow · Finish</p>
           </div>
         </div>
-        <span className="h-6 w-6" />
       </header>
 
-      <div className="flex justify-center px-4 pb-3">
-        <div className="inline-flex rounded-full border border-[#16243f]/25 bg-white p-1 text-sm shadow-sm">
-          <Link href="/todo" className="rounded-full px-3 py-1.5 text-[#16243f]/75 hover:bg-[#f2eee4]">
-            Todos
-          </Link>
-          <Link href="/calendar" className="rounded-full px-3 py-1.5 text-[#16243f]/75 hover:bg-[#f2eee4]">
-            Calendar
-          </Link>
-          <span className="rounded-full bg-[#16243f] px-3 py-1.5 text-white">Chat</span>
-        </div>
-      </div>
-
-      <section className="mx-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-[#16243f]/35 bg-white/60 p-3 lg:mx-8 lg:mb-8">
+      <section className="mx-4 mt-3 flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-[#16243f]/35 bg-white/60 p-3 lg:mx-8 lg:mb-8">
         <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl border border-dashed border-[#16243f]/25 bg-white/70 p-3">
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
@@ -230,58 +207,6 @@ export function ChatApp() {
           </form>
         </div>
       </section>
-
-      {menuOpen && (
-        <>
-          <button
-            type="button"
-            aria-label="close menu backdrop"
-            className="fixed inset-0 z-40 bg-black/30"
-            onClick={() => setMenuOpen(false)}
-          />
-          <aside className="fixed left-0 top-0 z-50 flex h-dvh w-72 max-w-[85vw] flex-col border-r border-[#16243f]/20 bg-[#f8f5ee] p-4 shadow-lg">
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="relative h-8 w-8">
-                  <svg viewBox="0 0 200 200" className="h-8 w-8">
-                    <circle cx="100" cy="100" r="98" fill="#16243f" />
-                    <circle cx="100" cy="100" r="90" fill="none" stroke="#ECE6D8" strokeWidth="1.5" opacity="0.5" />
-                    <circle cx="100" cy="100" r="72" fill="#ECE6D8" />
-                  </svg>
-                  <img
-                    src="/branding/rabbithole-dog-cameo.png"
-                    alt="Rabbithole logo"
-                    className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
-                  />
-                </div>
-                <p className="font-serif text-lg font-bold tracking-tight">Rabbithole</p>
-              </div>
-              <button
-                type="button"
-                aria-label="close menu"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-md px-2 py-1 text-lg text-[#16243f]/70 hover:bg-[#ece6d8]"
-              >
-                ✕
-              </button>
-            </div>
-            <nav className="flex flex-col gap-2 text-sm">
-              <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg bg-[#16243f] px-3 py-2 text-white">
-                Chat
-              </Link>
-              <Link href="/todo" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
-                Todos
-              </Link>
-              <Link href="/calendar" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
-                Calendar
-              </Link>
-              <Link href="/news" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
-                News
-              </Link>
-            </nav>
-          </aside>
-        </>
-      )}
     </main>
   );
 }
