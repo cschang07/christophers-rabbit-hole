@@ -34,7 +34,7 @@ const HOST_LABEL: Record<string, string> = {
   "coindesk.com": "CoinDesk",
 };
 
-function hostLabel(url: string): string {
+export function hostLabel(url: string): string {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
     return HOST_LABEL[host] ?? host;

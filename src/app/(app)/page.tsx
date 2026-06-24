@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/news-skeleton";
+import { NewsAsk } from "@/components/news-ask";
 import { ThemeSidebar } from "@/components/theme-sidebar";
 import { editionDate, editionLabel, themes } from "@/data/editions";
 import { generateThemeArticle } from "@/lib/news-gen";
@@ -78,6 +79,20 @@ async function ThemeSection({ theme, date }: { theme: Theme; date: string }) {
   );
 }
 
+// Reuses the same cached generateThemeArticle as ThemeSection above, just to
+// read the already-generated title+dek as context for the feed-level Q&A.
+async function FeedAsk({ date }: { date: string }) {
+  const articles = await Promise.all(themes.map((t) => generateThemeArticle(t, date)));
+  const pageContext = themes
+    .map((t, i) => {
+      const article = articles[i];
+      return article ? `【${t.name}】${article.title}\n${article.dek}` : null;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+  return <NewsAsk variant="feed" pageContext={pageContext} />;
+}
+
 export default function NewsHomePage() {
   const date = editionDate();
   const label = editionLabel(date);
@@ -106,6 +121,10 @@ export default function NewsHomePage() {
               <ThemeSection theme={theme} date={date} />
             </Suspense>
           ))}
+
+          <Suspense fallback={null}>
+            <FeedAsk date={date} />
+          </Suspense>
         </div>
       </div>
     </div>

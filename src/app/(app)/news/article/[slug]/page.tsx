@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AskPanel } from "@/components/ask-panel";
 import { ArrowLeftIcon } from "@/components/icons";
+import { NewsAsk } from "@/components/news-ask";
 import { getArticleBySlug, getThemeById } from "@/data/editions";
 import type { Citation } from "@/lib/types";
 
@@ -123,13 +123,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </section>
       )}
 
-      <AskPanel
-        articleTitle={article.title}
-        articleContext={[
+      <NewsAsk
+        variant="article"
+        theme={theme.slug}
+        pageContext={[
           article.title,
           article.dek,
           ...article.sections.flatMap((s) => [s.heading, ...s.paragraphs]),
         ].join("\n\n")}
+        placeholder={`關於「${article.title.length > 20 ? `${article.title.slice(0, 20)}…` : article.title}」，你想知道什麼？`}
       />
     </div>
   );
