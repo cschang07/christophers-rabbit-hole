@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { unstable_cache } from "next/cache";
-import { currentEdition } from "@/data/editions";
+import { getArticlesByTheme } from "@/data/editions";
 import type {
   FlowPoint,
   OutlookData,
@@ -257,8 +257,10 @@ export async function fetchOutlookData(): Promise<OutlookData> {
           ? "外資小幅買超"
           : "外資累積買超";
 
-  const article = currentEdition.articles[0];
-  const articleSummary = `${article.title}。${article.dek}`;
+  const [article] = await getArticlesByTheme("theme-0050");
+  const articleSummary = article
+    ? `${article.title}。${article.dek}`
+    : "今日無 0050 相關新聞摘要可參考。";
 
   let horizons: OutlookHorizon[];
   try {

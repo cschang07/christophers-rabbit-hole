@@ -13,8 +13,10 @@ Personal productivity + daily news app.
 - Break Game — Tetris
 
 **News** (`/news`)
-- 0050 theme: three-horizon outlook (Gemini) + live price (TWSE) + charts (Yahoo Finance / FinMind)
-- Daily article digest per theme
+- Daily article digest per theme, generated on demand from real sources: Tavily (`topic=news`) fetches the day's sources → Gemini synthesises a Traditional-Chinese digest with real citation links. Cached one edition per theme per day (`unstable_cache`, 24h).
+- Themes: 0050, AI, Bitcoin, Semiconductor, Macro, Taiwan Market.
+- 0050 theme also has: three-horizon outlook (Gemini) + live price (TWSE) + charts (Yahoo Finance / FinMind) + dividend yield (FinMind).
+- Requires `GEMINI_API_KEY` and `TAVILY_API_KEY` (see `.env`).
 
 ## Stack
 

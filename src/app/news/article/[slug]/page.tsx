@@ -2,10 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AskPanel } from "@/components/ask-panel";
 import { ArrowLeftIcon } from "@/components/icons";
-import {
-  currentEdition,
-  getArticleBySlug,
-} from "@/data/editions";
+import { getArticleBySlug, getThemeById } from "@/data/editions";
 import type { Citation } from "@/lib/types";
 
 interface ArticlePageProps {
@@ -51,13 +48,13 @@ function CitationPills({
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
-  const theme = currentEdition.themes.find((t) => t.id === article.themeId)!;
-  const related = article.relatedSlugs
-    .map((s) => getArticleBySlug(s))
-    .filter(Boolean);
+  const theme = getThemeById(article.themeId)!;
+  const related = (
+    await Promise.all(article.relatedSlugs.map((s) => getArticleBySlug(s)))
+  ).filter(Boolean);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">

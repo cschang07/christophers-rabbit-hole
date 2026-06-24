@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ const newsreader = Newsreader({
 export const metadata: Metadata = {
   title: "Christopher Daily",
   description: "Personal productivity and daily news",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

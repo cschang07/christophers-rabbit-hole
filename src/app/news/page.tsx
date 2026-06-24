@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import { ArticleCard } from "@/components/article-card";
-import { EmptyThemeCard } from "@/components/empty-theme";
+import { ArticleCardSkeleton } from "@/components/news-skeleton";
 import { ThemeSidebar } from "@/components/theme-sidebar";
-import { currentEdition } from "@/data/editions";
+import { editionDate, editionLabel, themes } from "@/data/editions";
+import { generateThemeArticle } from "@/lib/news-gen";
+import type { Theme } from "@/lib/types";
 
 const BADGE: Record<string, string> = {
   "0050": "50",
@@ -12,14 +15,77 @@ function themeBadge(slug: string, name: string) {
   return BADGE[slug] ?? name.slice(0, 2).toUpperCase();
 }
 
+// Render per request; each theme streams in via Suspense as its digest finishes
+// generating. Must not prerender at build time.
+export const dynamic = "force-dynamic";
+
+function ThemeHeading({
+  theme,
+  count,
+}: {
+  theme: Theme;
+  count: number | null;
+}) {
+  return (
+    <div className="mb-5 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
+          style={{ backgroundColor: theme.accent }}
+        >
+          {themeBadge(theme.slug, theme.name)}
+        </span>
+        <div>
+          <h2 className="font-serif text-xl text-stone-900">{theme.name}</h2>
+          <p className="text-xs text-stone-400">{theme.description}</p>
+        </div>
+      </div>
+      <span className="text-xs text-stone-400">
+        {count === null ? "整理中…" : `${count} stories`}
+      </span>
+    </div>
+  );
+}
+
+function ThemeSectionSkeleton({ theme }: { theme: Theme }) {
+  return (
+    <section className="mb-12">
+      <ThemeHeading theme={theme} count={null} />
+      <ArticleCardSkeleton />
+    </section>
+  );
+}
+
+async function ThemeSection({ theme, date }: { theme: Theme; date: string }) {
+  const article = await generateThemeArticle(theme, date);
+  if (!article) {
+    return (
+      <section className="mb-12">
+        <ThemeHeading theme={theme} count={0} />
+        <p className="rounded-2xl border border-dashed border-stone-200 px-5 py-6 text-sm text-stone-400">
+          今日尚無 {theme.name} 相關新聞。
+        </p>
+      </section>
+    );
+  }
+  return (
+    <section className="mb-12">
+      <ThemeHeading theme={theme} count={1} />
+      <div className="space-y-4">
+        <ArticleCard article={article} theme={theme} />
+      </div>
+    </section>
+  );
+}
+
 export default function NewsHomePage() {
-  const activeThemes = currentEdition.themes.filter((t) => t.status === "active");
-  const emptyThemes = currentEdition.themes.filter((t) => t.status === "empty");
+  const date = editionDate();
+  const label = editionLabel(date);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="flex gap-10">
-        <ThemeSidebar themes={currentEdition.themes} />
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <ThemeSidebar themes={themes} />
 
         <div className="min-w-0 flex-1">
           <section className="mb-10">
@@ -28,52 +94,18 @@ export default function NewsHomePage() {
               Good morning, Christopher.
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-stone-500">
-              {currentEdition.label} — {activeThemes.length} active themes, {emptyThemes.length}{" "}
-              placeholders
+              {label} — {themes.length} themes
             </p>
           </section>
 
-          {activeThemes.map((theme) => {
-            const articles = currentEdition.articles.filter(
-              (a) => a.themeId === theme.id,
-            );
-            return (
-              <section key={theme.id} className="mb-12">
-                <div className="mb-5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
-                      style={{ backgroundColor: theme.accent }}
-                    >
-                      {themeBadge(theme.slug, theme.name)}
-                    </span>
-                    <div>
-                      <h2 className="font-serif text-xl text-stone-900">{theme.name}</h2>
-                      <p className="text-xs text-stone-400">{theme.description}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-stone-400">{articles.length} stories</span>
-                </div>
-
-                <div className="space-y-4">
-                  {articles.map((article) => (
-                    <ArticleCard key={article.id} article={article} theme={theme} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-
-          <section>
-            <h2 className="mb-5 text-[11px] font-medium uppercase tracking-widest text-stone-400">
-              Upcoming themes
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {emptyThemes.map((theme) => (
-                <EmptyThemeCard key={theme.id} theme={theme} />
-              ))}
-            </div>
-          </section>
+          {themes.map((theme) => (
+            <Suspense
+              key={theme.id}
+              fallback={<ThemeSectionSkeleton theme={theme} />}
+            >
+              <ThemeSection theme={theme} date={date} />
+            </Suspense>
+          ))}
         </div>
       </div>
     </div>

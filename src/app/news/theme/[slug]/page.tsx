@@ -1,22 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { EmptyThemePanel } from "@/components/empty-theme";
 import { HoldingsCard } from "@/components/holdings-card";
 import { ArrowLeftIcon } from "@/components/icons";
 import { MyPosition } from "@/components/my-position";
+import {
+  ArticleListSkeleton,
+  OutlookSkeleton,
+} from "@/components/news-skeleton";
 import { OutlookCharts } from "@/components/outlook-charts";
 import { OutlookLivePrice } from "@/components/outlook-live-price";
 import { OutlookStrip } from "@/components/outlook-strip";
 import { ThemeSidebar } from "@/components/theme-sidebar";
 import { YieldCard } from "@/components/yield-card";
 import {
-  currentEdition,
   getArticlesByTheme,
   getThemeBySlug,
+  themes,
 } from "@/data/editions";
 import { fetchYieldData } from "@/lib/dividend-data";
 import { fetchOutlookData } from "@/lib/outlook-data";
+import type { Theme } from "@/lib/types";
 
 const BADGE: Record<string, string> = {
   "0050": "50",
@@ -27,30 +33,57 @@ function themeBadge(slug: string, name: string) {
   return BADGE[slug] ?? name.slice(0, 2).toUpperCase();
 }
 
+// Streams independently of the article digest below.
+async function OutlookBlock() {
+  const outlookData = await fetchOutlookData();
+  const lastPrice =
+    outlookData.priceSeries[outlookData.priceSeries.length - 1]?.price ?? 0;
+  const yieldData = await fetchYieldData(lastPrice);
+
+  return (
+    <>
+      <OutlookLivePrice />
+      <MyPosition />
+      <OutlookStrip data={outlookData} />
+      <div className="mb-8 grid gap-4 md:grid-cols-2">
+        <HoldingsCard />
+        <YieldCard data={yieldData} />
+      </div>
+      <OutlookCharts data={outlookData} />
+    </>
+  );
+}
+
+async function ThemeArticles({ theme }: { theme: Theme }) {
+  const articles = await getArticlesByTheme(theme.id);
+  if (articles.length === 0) {
+    return theme.slug === "0050" ? null : <EmptyThemePanel theme={theme} />;
+  }
+  return (
+    <div className="space-y-4">
+      {articles.map((article) => (
+        <ArticleCard key={article.id} article={article} theme={theme} />
+      ))}
+    </div>
+  );
+}
+
 interface ThemePageProps {
   params: Promise<{ slug: string }>;
 }
+
+// Render per request; outlook + digest stream in via Suspense.
+export const dynamic = "force-dynamic";
 
 export default async function ThemePage({ params }: ThemePageProps) {
   const { slug } = await params;
   const theme = getThemeBySlug(slug);
   if (!theme) notFound();
 
-  const articles = getArticlesByTheme(theme.id);
-
-  let outlookData = null;
-  let yieldData = null;
-  if (slug === "0050") {
-    outlookData = await fetchOutlookData();
-    const lastPrice =
-      outlookData.priceSeries[outlookData.priceSeries.length - 1]?.price ?? 0;
-    yieldData = await fetchYieldData(lastPrice);
-  }
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="flex gap-10">
-        <ThemeSidebar themes={currentEdition.themes} activeSlug={slug} />
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <ThemeSidebar themes={themes} activeSlug={slug} />
 
         <div className="min-w-0 flex-1">
           <Link
@@ -76,29 +109,15 @@ export default async function ThemePage({ params }: ThemePageProps) {
             </div>
           </header>
 
-          {theme.status === "empty" ? (
-            <EmptyThemePanel theme={theme} />
-          ) : (
-            <>
-              {slug === "0050" && outlookData && yieldData && (
-                <>
-                  <OutlookLivePrice />
-                  <MyPosition />
-                  <OutlookStrip data={outlookData} />
-                  <div className="mb-8 grid gap-4 md:grid-cols-2">
-                    <HoldingsCard />
-                    <YieldCard data={yieldData} />
-                  </div>
-                  <OutlookCharts data={outlookData} />
-                </>
-              )}
-              <div className="space-y-4">
-                {articles.map((article) => (
-                  <ArticleCard key={article.id} article={article} theme={theme} />
-                ))}
-              </div>
-            </>
+          {slug === "0050" && (
+            <Suspense fallback={<OutlookSkeleton />}>
+              <OutlookBlock />
+            </Suspense>
           )}
+
+          <Suspense fallback={<ArticleListSkeleton />}>
+            <ThemeArticles theme={theme} />
+          </Suspense>
         </div>
       </div>
     </div>
