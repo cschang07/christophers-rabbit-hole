@@ -1,87 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FormattedAnswer } from "@/components/formatted-answer";
 import { SendIcon } from "@/components/icons";
-import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { parseSseStream } from "@/lib/parse-sse";
-import type { ChatMessage, ChatSessionSummary, RawHermesMessage } from "@/lib/chat-types";
-
-const SUGGESTIONS = ["今天有什麼新聞值得關注？", "幫我規劃明天的待辦事項", "隨便聊聊"];
+import type { ChatMessage } from "@/lib/chat-types";
 
 export function ChatApp() {
-  const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    refreshSessions();
-  }, []);
-
-  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
-
-  async function refreshSessions() {
-    try {
-      const res = await fetch("/api/chat/sessions");
-      const body = await res.json();
-      if (res.ok) setSessions(body.sessions ?? []);
-    } catch {
-      // sidebar will simply stay empty; not worth surfacing to the user
-    }
-  }
-
-  async function selectSession(id: string) {
-    setActiveSessionId(id);
-    setMessages([]);
-    setLoadingMessages(true);
-    try {
-      const res = await fetch(`/api/chat/messages?id=${encodeURIComponent(id)}`);
-      const body = await res.json();
-      if (res.ok) {
-        setMessages(
-          (body.messages as RawHermesMessage[] ?? [])
-            .filter((m): m is RawHermesMessage & { role: "user" | "assistant" } =>
-              m.role === "user" || m.role === "assistant",
-            )
-            .map((m) => ({ id: m.id, role: m.role, content: m.content ?? "" })),
-        );
-      }
-    } finally {
-      setLoadingMessages(false);
-    }
-  }
-
-  function startNewChat() {
-    setActiveSessionId(null);
-    setMessages([]);
-    setInput("");
-  }
-
-  async function renameSession(id: string, title: string) {
-    setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
-    await fetch("/api/chat/session", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, title }),
-    });
-  }
-
-  async function deleteSession(id: string) {
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-    if (id === activeSessionId) startNewChat();
-    await fetch("/api/chat/session", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-  }
 
   async function sendMessage(text: string) {
     const userText = text.trim();
@@ -99,11 +36,9 @@ export function ChatApp() {
         if (!res.ok) throw new Error(body?.error ?? "建立對話失敗");
         sessionId = body.session.id;
         setActiveSessionId(sessionId);
-        setSessions((prev) => [body.session, ...prev]);
 
         const autoTitle = generateAutoTitle(userText);
         if (autoTitle) {
-          setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, title: autoTitle } : s)));
           void fetch("/api/chat/session", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -134,8 +69,6 @@ export function ChatApp() {
           setLastAssistantContent((data as { message?: string }).message ?? "發生錯誤，請稍後再試。");
         }
       }
-
-      refreshSessions();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         appendToLastAssistant("\n\n（已停止生成）");
@@ -177,99 +110,178 @@ export function ChatApp() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
-      <ChatSidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelect={selectSession}
-        onNew={startNewChat}
-        onRename={renameSession}
-        onDelete={deleteSession}
-      />
-
-      <main className="flex min-h-0 flex-1 flex-col">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-8 lg:px-10">
-          <div className="mx-auto w-full max-w-2xl">
-            {messages.length === 0 && !loadingMessages ? (
-              <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
-                <h1 className="font-serif text-2xl text-stone-900">今天想聊什麼？</h1>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => sendMessage(s)}
-                      className="rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-500 transition-colors hover:border-stone-300 hover:text-stone-700"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {messages.map((msg, i) =>
-                  msg.role === "user" ? (
-                    <div key={msg.id ?? i} className="flex justify-end">
-                      <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-stone-900 px-4 py-3 text-sm leading-relaxed text-stone-100">
-                        {msg.content}
-                      </div>
-                    </div>
-                  ) : (
-                    <div key={msg.id ?? i} className="flex justify-start">
-                      <div className="w-full max-w-none rounded-2xl rounded-bl-sm border border-stone-200/80 bg-white px-5 py-4 shadow-sm">
-                        {msg.content ? (
-                          <FormattedAnswer content={msg.content} />
-                        ) : (
-                          <p className="text-sm text-stone-400">思考中…</p>
-                        )}
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            )}
+    <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-5xl lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
+      <header className="flex items-center justify-between px-4 pb-2 pt-4">
+        <button
+          type="button"
+          className="rounded-md p-1 text-xl text-[#16243f]"
+          aria-label="menu"
+          onClick={() => setMenuOpen(true)}
+        >
+          ☰
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative h-9 w-9 shrink-0">
+            <svg viewBox="0 0 200 200" className="h-9 w-9">
+              <circle cx="100" cy="100" r="98" fill="#16243f" />
+              <circle cx="100" cy="100" r="90" fill="none" stroke="#ECE6D8" strokeWidth="1.5" opacity="0.5" />
+              <circle cx="100" cy="100" r="72" fill="#ECE6D8" />
+            </svg>
+            <img
+              src="/branding/rabbithole-dog-cameo.png"
+              alt="Rabbithole logo"
+              className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
+            />
+          </div>
+          <div className="leading-none">
+            <p className="font-serif text-lg font-bold tracking-tight">Rabbithole</p>
+            <p className="text-[9px] uppercase tracking-[0.18em] text-[#16243f]/70">Focus · Flow · Finish</p>
           </div>
         </div>
+        <span className="h-6 w-6" />
+      </header>
 
-        <div className="border-t border-stone-200 bg-white px-4 py-4 lg:px-10">
+      <div className="flex justify-center px-4 pb-3">
+        <div className="inline-flex rounded-full border border-[#16243f]/25 bg-white p-1 text-sm shadow-sm">
+          <Link href="/todo" className="rounded-full px-3 py-1.5 text-[#16243f]/75 hover:bg-[#f2eee4]">
+            Todos
+          </Link>
+          <Link href="/calendar" className="rounded-full px-3 py-1.5 text-[#16243f]/75 hover:bg-[#f2eee4]">
+            Calendar
+          </Link>
+          <span className="rounded-full bg-[#16243f] px-3 py-1.5 text-white">Chat</span>
+        </div>
+      </div>
+
+      <section className="mx-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-[#16243f]/35 bg-white/60 p-3 lg:mx-8 lg:mb-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl border border-dashed border-[#16243f]/25 bg-white/70 p-3">
+          {messages.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
+              <div className="relative h-24 w-24">
+                <svg viewBox="0 0 360 360" className="h-24 w-24">
+                  <circle cx="180" cy="180" r="178" fill="#16243f" />
+                  <circle cx="180" cy="180" r="169" fill="none" stroke="#ECE6D8" strokeWidth="1.5" opacity="0.5" />
+                  <circle cx="180" cy="180" r="122" fill="#ECE6D8" />
+                </svg>
+                <img
+                  src="/branding/rabbithole-dog-cameo.png"
+                  alt="Rabbithole primary logo"
+                  className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
+                />
+              </div>
+              <p className="font-serif text-2xl tracking-tight">Ask Rabbithole</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((msg, i) =>
+                msg.role === "user" ? (
+                  <div key={msg.id ?? i} className="flex justify-end">
+                    <div className="max-w-[90%] rounded-2xl rounded-br-sm bg-[#16243f] px-4 py-3 text-sm leading-relaxed text-[#f6f1e7]">
+                      {msg.content}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={msg.id ?? i} className="flex justify-start">
+                    <div className="w-full max-w-none rounded-2xl rounded-bl-sm border border-[#16243f]/20 bg-white px-4 py-3 shadow-sm">
+                      {msg.content ? <FormattedAnswer content={msg.content} /> : <p className="text-sm text-[#16243f]/55">思考中…</p>}
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="pt-3">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               sendMessage(input);
             }}
-            className="mx-auto w-full max-w-2xl"
+            className="flex items-center gap-2"
           >
-            <div className="flex items-center gap-2 rounded-2xl border border-stone-200 bg-white p-2 shadow-sm focus-within:border-stone-300 focus-within:ring-2 focus-within:ring-stone-100">
+            <div className="flex flex-1 items-center gap-2 rounded-full border border-[#16243f]/30 bg-white px-3 py-2.5 shadow-sm">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="輸入訊息…"
+                placeholder="Input box"
                 disabled={sending}
-                className="flex-1 bg-transparent px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none disabled:opacity-50"
+                className="flex-1 bg-transparent text-base text-[#16243f] placeholder:text-[#16243f]/45 focus:outline-none disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || sending}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-900 text-white transition-opacity disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#16243f] text-white transition-opacity disabled:opacity-30"
                 aria-label="送出"
               >
                 <SendIcon className="h-4 w-4" />
               </button>
-              {sending && (
-                <button
-                  type="button"
-                  onClick={stopGenerating}
-                  className="rounded-xl border border-stone-300 px-3 py-2 text-xs text-stone-600 hover:bg-stone-50"
-                >
-                  停止生成
-                </button>
-              )}
             </div>
+            <button
+              type="button"
+              onClick={stopGenerating}
+              disabled={!sending}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#16243f]/35 bg-white text-sm font-semibold text-[#16243f] disabled:opacity-40"
+              aria-label="停止生成"
+            >
+              ⏹
+            </button>
           </form>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {menuOpen && (
+        <>
+          <button
+            type="button"
+            aria-label="close menu backdrop"
+            className="fixed inset-0 z-40 bg-black/30"
+            onClick={() => setMenuOpen(false)}
+          />
+          <aside className="fixed left-0 top-0 z-50 flex h-dvh w-72 max-w-[85vw] flex-col border-r border-[#16243f]/20 bg-[#f8f5ee] p-4 shadow-lg">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="relative h-8 w-8">
+                  <svg viewBox="0 0 200 200" className="h-8 w-8">
+                    <circle cx="100" cy="100" r="98" fill="#16243f" />
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="#ECE6D8" strokeWidth="1.5" opacity="0.5" />
+                    <circle cx="100" cy="100" r="72" fill="#ECE6D8" />
+                  </svg>
+                  <img
+                    src="/branding/rabbithole-dog-cameo.png"
+                    alt="Rabbithole logo"
+                    className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
+                  />
+                </div>
+                <p className="font-serif text-lg font-bold tracking-tight">Rabbithole</p>
+              </div>
+              <button
+                type="button"
+                aria-label="close menu"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-md px-2 py-1 text-lg text-[#16243f]/70 hover:bg-[#ece6d8]"
+              >
+                ✕
+              </button>
+            </div>
+            <nav className="flex flex-col gap-2 text-sm">
+              <Link href="/" onClick={() => setMenuOpen(false)} className="rounded-lg bg-[#16243f] px-3 py-2 text-white">
+                Chat
+              </Link>
+              <Link href="/todo" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
+                Todos
+              </Link>
+              <Link href="/calendar" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
+                Calendar
+              </Link>
+              <Link href="/news" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-[#16243f]/80 hover:bg-[#ece6d8]">
+                News
+              </Link>
+            </nav>
+          </aside>
+        </>
+      )}
+    </main>
   );
 }

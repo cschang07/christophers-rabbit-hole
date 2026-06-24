@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/news-skeleton";
 import { ThemeSidebar } from "@/components/theme-sidebar";
@@ -89,6 +90,13 @@ export default function NewsHomePage() {
 
         <div className="min-w-0 flex-1">
           <section className="mb-10">
+            <Link
+              href="/"
+              className="mb-3 inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-700"
+            >
+              <span className="text-base">☰</span>
+              Back Home
+            </Link>
             <p className="text-sm text-stone-400">Today&apos;s edition</p>
             <h1 className="mt-1 font-serif text-3xl tracking-tight text-stone-900 sm:text-4xl">
               Good morning, Christopher.

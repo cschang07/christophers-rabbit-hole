@@ -65,6 +65,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <ArrowLeftIcon className="h-4 w-4" />
         Back to {theme.name}
       </Link>
+      <Link
+        href="/"
+        className="mb-8 ml-4 inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600"
+      >
+        <span className="text-base">☰</span>
+        Home
+      </Link>
 
       <article>
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-stone-400">

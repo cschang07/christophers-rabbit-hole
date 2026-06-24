@@ -82,7 +82,7 @@ export function ProductivitySidebar() {
         >
           <span className="text-lg">☰</span>
         </button>
-        <Link href="/todo" className="font-serif text-sm tracking-tight text-teal-800">
+        <Link href="/" className="font-serif text-sm tracking-tight text-teal-800">
           Christopher&apos;s Rabbit Hole
         </Link>
         <div className="ml-auto flex items-center gap-2">
@@ -105,7 +105,7 @@ export function ProductivitySidebar() {
         style={{ height: "100dvh" }}
       >
         <div className="mb-4 flex items-center justify-between px-3">
-          <Link href="/todo" className="font-serif text-sm leading-snug tracking-tight text-teal-800" onClick={() => setDrawerOpen(false)}>
+          <Link href="/" className="font-serif text-sm leading-snug tracking-tight text-teal-800" onClick={() => setDrawerOpen(false)}>
             Christopher&apos;s<br />Rabbit Hole
           </Link>
           <button

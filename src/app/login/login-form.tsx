@@ -19,7 +19,7 @@ export function LoginForm({ next }: { next: string }) {
           type="password"
           autoFocus
           required
-          className="w-full rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none transition-colors focus:border-teal-600"
+          className="w-full rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 text-base sm:text-sm text-stone-900 outline-none transition-colors focus:border-teal-600"
         />
       </div>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
