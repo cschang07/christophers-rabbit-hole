@@ -43,3 +43,6 @@ next-env.d.ts
 # python
 __pycache__/
 *.py[cod]
+
+# local verification artifacts (screenshots, handoff checks)
+/outputs/

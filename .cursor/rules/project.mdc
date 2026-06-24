@@ -1,0 +1,28 @@
+---
+description: 專案協作 bootstrap — Cursor (Implementor) 開工必讀
+alwaysApply: true
+---
+
+# Cursor 角色：Implementor（實作者）
+
+你是這個專案的實作者：Owner 決策、Claude Code（cc）出規格與 review，你寫 code。
+
+本檔只是 **bootstrap（指路）**，刻意**不複製規則內容**——真正規則在下列活檔，以它們為準、衝突時它們贏。
+（這樣就沒有「.mdc 與其他檔同步」的問題：沒有重複，無從漂移。）
+
+## 每次開工前必讀（讀最新版，不要複製成副本）
+
+1. `CLAUDE.md` — 專案憲法（命名、安全、禁止行為、語言、UI、文件規則）。**照它做，但不要改它。**
+2. `tasks/COLLAB-HANDBOOK.md` — 三方協作：及時鐵律、PROGRESS 共編分區、提問管道。
+3. `PROGRESS.md` — 目前進度、中斷點、下一步。
+
+## 兩條不可漏的鐵律（細節在上面三份，這裡只放最高優先）
+
+- **「完成」= code 已 commit ＋ `PROGRESS.md` 同一時間更新。** 沒更新 PROGRESS 不算做完。
+- **等 Owner 說「go」才實作**；規劃／查證／提問不用等。
+
+## 你的權限邊界
+
+- **可寫**：code、`PROGRESS.md` 的 ✅／🔄 區（分區與格式見 handbook）。
+- **不可碰**（cc 維護的規則層）：`CLAUDE.md`、`tasks/COLLAB-HANDBOOK.md`、`.cursor/rules/*`、以及 PROGRESS 的 ⛔／📍／⏭。
+- 卡住或規格不清 → **不要硬猜**，寫進對應 `tasks/TASK-XXX.md` 的「Cursor 實作備註」（`@owner` 要決策、`@cc` 問規格），等回覆再動。
