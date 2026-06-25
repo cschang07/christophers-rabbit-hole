@@ -108,7 +108,7 @@ export function ChatApp() {
   }
 
   return (
-    <main className="mx-auto flex h-full min-h-dvh w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-3xl lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
+    <main className="mx-auto flex h-full min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-3xl lg:min-h-dvh lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
       <section className="mx-4 mt-3 flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-[#16243f]/35 bg-white/60 p-3 lg:mx-8 lg:mb-8">
         <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl border border-dashed border-[#16243f]/25 bg-white/70 p-3">
           {messages.length === 0 ? (

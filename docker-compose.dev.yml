@@ -27,15 +27,11 @@ services:
     depends_on:
       - backend
 
-  # During dev, repoint the public ngrok tunnel at the hot-reload container so
-  # the phone/ngrok view reflects source edits instantly (no image rebuild).
-  # Base compose points ngrok at the production `web`; this override only wins
-  # when the dev compose file is layered on with `--profile dev`.
-  ngrok:
-    profiles: ["dev"]
-    command: http --url=boasting-cheek-squiggly.ngrok-free.dev web-dev:3008
-    depends_on:
-      - web-dev
+  # NOTE: do NOT repoint the public ngrok tunnel at web-dev. Next.js dev mode
+  # served over ngrok fails to hydrate on mobile Safari (HMR/React-Refresh stalls),
+  # so client effects never run — pages like /todo and /board hang on "Loading…".
+  # Keep ngrok on the production `web` container (base compose). For live
+  # iteration, hit web-dev directly at http://localhost:3009, not via ngrok.
 
 volumes:
   web_dev_node_modules:

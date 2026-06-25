@@ -26,6 +26,17 @@ body {
   overflow-x: hidden;
 }
 
+/* iOS Safari: a long-press on a glyph icon (☰ ✕ ⏹ etc.) starts text/object
+   selection and pops the Copy callout, which then swallows taps and leaves the
+   control dead until the selection clears. Disable selection + callout on
+   interactive controls so taps always reach them. */
+button,
+[role="button"] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* iOS Safari toolbar resize shouldn't shift fixed-height layouts */
 .full-screen {
   height: 100dvh;
@@ -196,7 +207,9 @@ body {
   .notes-editor { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px 24px; }
   .notes-empty { display: flex; align-items: center; justify-content: center; height: 100%; }
   .editor-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .editor-title { flex: 1; background: none; border: none; outline: none; color: var(--text); font-size: 22px; font-weight: 700; }
+  .editor-title { flex: 1; background: none; border: none; border-bottom: 1px solid transparent; outline: none; color: var(--text); font-size: 22px; font-weight: 700; transition: border-color 0.15s; }
+  .editor-title:hover { border-bottom-color: var(--border); }
+  .editor-title:focus { border-bottom-color: var(--accent); }
   .save-state { font-size: 12px; color: var(--muted); }
   .save-state.error { color: var(--red); font-weight: 700; }
   .editor-tags { margin-bottom: 12px; font-size: 13px; }
@@ -204,6 +217,9 @@ body {
   .editor-body:focus { border-color: var(--accent); }
   .markdown-preview { flex: 1; overflow-y: auto; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; line-height: 1.65; font-size: 15px; }
   .markdown-preview h1, .markdown-preview h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .markdown-preview :is(ul, ol) { list-style: revert; padding-left: 1.5em; margin: 0.4em 0; }
+  .markdown-preview li { margin: 0.2em 0; }
+  .markdown-preview p { margin: 0.5em 0; }
   .markdown-preview code { background: var(--bg-3); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
   .markdown-preview pre { background: var(--bg-3); padding: 12px; border-radius: 8px; overflow-x: auto; }
   .markdown-preview pre code { background: none; padding: 0; }
