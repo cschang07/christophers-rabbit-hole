@@ -27,6 +27,16 @@ services:
     depends_on:
       - backend
 
+  # During dev, repoint the public ngrok tunnel at the hot-reload container so
+  # the phone/ngrok view reflects source edits instantly (no image rebuild).
+  # Base compose points ngrok at the production `web`; this override only wins
+  # when the dev compose file is layered on with `--profile dev`.
+  ngrok:
+    profiles: ["dev"]
+    command: http --url=boasting-cheek-squiggly.ngrok-free.dev web-dev:3008
+    depends_on:
+      - web-dev
+
 volumes:
   web_dev_node_modules:
   web_dev_next:

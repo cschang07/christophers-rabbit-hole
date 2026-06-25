@@ -109,27 +109,6 @@ export function ChatApp() {
 
   return (
     <main className="mx-auto flex h-full min-h-dvh w-full max-w-md flex-col bg-[#f4f1e9] text-[#16243f] lg:max-w-3xl lg:rounded-3xl lg:border lg:border-[#16243f]/15 lg:bg-[#f8f5ee] lg:shadow-sm">
-      <header className="flex items-center justify-center px-4 pb-2 pt-4">
-        <div className="flex items-center gap-2">
-          <div className="relative h-9 w-9 shrink-0">
-            <svg viewBox="0 0 200 200" className="h-9 w-9">
-              <circle cx="100" cy="100" r="98" fill="#16243f" />
-              <circle cx="100" cy="100" r="90" fill="none" stroke="#ECE6D8" strokeWidth="1.5" opacity="0.5" />
-              <circle cx="100" cy="100" r="72" fill="#ECE6D8" />
-            </svg>
-            <img
-              src="/branding/rabbithole-dog-cameo.png"
-              alt="Rabbithole logo"
-              className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
-            />
-          </div>
-          <div className="leading-none">
-            <p className="font-serif text-lg font-bold tracking-tight">Rabbithole</p>
-            <p className="text-[9px] uppercase tracking-[0.18em] text-[#16243f]/70">Focus · Flow · Finish</p>
-          </div>
-        </div>
-      </header>
-
       <section className="mx-4 mt-3 flex min-h-0 flex-1 flex-col rounded-2xl border border-dashed border-[#16243f]/35 bg-white/60 p-3 lg:mx-8 lg:mb-8">
         <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-xl border border-dashed border-[#16243f]/25 bg-white/70 p-3">
           {messages.length === 0 ? (
