@@ -11,6 +11,17 @@ interface Folder { id: number; name: string; parent_id: number | null; }
 interface Note { id: number; title: string; content: string; folder_id: number | null; tags: string[]; _tagsRaw?: string; }
 interface RecordingJob { id: number; status: 'processing' | 'done' | 'failed'; error?: string; }
 
+// Turn a raw transcription error (e.g. a verbatim "429 RESOURCE_EXHAUSTED {…}"
+// API blob) into something a human can read. The raw text stays in the tooltip.
+function friendlyTranscriptionError(err?: string): string {
+  const e = (err ?? '').toLowerCase();
+  if (/429|resource_exhausted|quota|rate.?limit/.test(e)) return 'Transcription quota reached — please try again later.';
+  if (/timeout|timed out|deadline/.test(e)) return 'Transcription timed out — please retry.';
+  if (/413|too large|payload/.test(e)) return 'Recording is too large to transcribe.';
+  if (/401|403|api.?key|unauthor/.test(e)) return 'Transcription service rejected the request (auth/key issue).';
+  return 'Transcription failed — please retry.';
+}
+
 function FolderTree({ folders, selected, onSelect, onCreate, onRename, onDelete }: {
   folders: Folder[]; selected: number | null;
   onSelect: (id: number | null) => void;
@@ -210,7 +221,7 @@ export default function NotesPage() {
                 <><span className="spinner" /> Transcribing… this can take a few minutes.</>
               ) : (
                 <>
-                  <div className="job-error" title={j.error}>Transcription failed: {j.error}</div>
+                  <div className="job-error" title={j.error}>{friendlyTranscriptionError(j.error)}</div>
                   <div className="job-actions">
                     <button className="btn secondary small" onClick={() => retryJob(j)}>Retry</button>
                     <button className="btn danger small" onClick={() => dismissJob(j)}>Discard</button>
