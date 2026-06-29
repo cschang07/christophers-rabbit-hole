@@ -11,9 +11,6 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 const THEME_QUERY: Record<string, string> = {
   "0050": "元大台灣50 0050 ETF 台股 外資 配息 成分股 淨值",
   ai: "人工智慧 AI 大型語言模型 OpenAI Google Gemini 輝達 Nvidia 最新發布",
-  bitcoin: "比特幣 Bitcoin 加密貨幣 ETF 鏈上數據 走勢 宏觀",
-  semiconductor: "半導體 台積電 TSMC 記憶體 晶圓代工 供應鏈 設備",
-  macro: "總體經濟 升息 降息 通膨 匯率 Fed 聯準會 央行 流動性",
   "taiwan-market": "台股 加權指數 法說會 產業輪動 政策 上市櫃 籌碼",
 };
 

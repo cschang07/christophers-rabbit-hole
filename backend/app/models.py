@@ -114,7 +114,7 @@ class Note(Base):
     __tablename__ = "notes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(300), default="Untitled")
+    title: Mapped[str] = mapped_column(String(300), default="")
     content: Mapped[str] = mapped_column(Text, default="")
     folder_id: Mapped[int | None] = mapped_column(
         ForeignKey("folders.id", ondelete="SET NULL"), nullable=True

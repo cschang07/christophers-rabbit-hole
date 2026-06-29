@@ -64,7 +64,7 @@ class FolderOut(BaseModel):
 
 
 class NoteCreate(BaseModel):
-    title: str = "Untitled"
+    title: str = ""
     content: str = ""
     folder_id: int | None = None
     tags: list[str] = []

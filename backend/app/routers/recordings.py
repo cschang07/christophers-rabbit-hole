@@ -41,8 +41,8 @@ def list_recordings(db: Session = Depends(get_db)):
 async def upload_recording(
     file: UploadFile, background: BackgroundTasks, db: Session = Depends(get_db)
 ):
-    if not os.environ.get("GEMINI_API_KEY"):
-        raise HTTPException(400, "GEMINI_API_KEY not set — add it to .env and restart")
+    if not os.environ.get("MISTRAL_API_KEY"):
+        raise HTTPException(400, "MISTRAL_API_KEY not set — add it to .env and restart")
     suffix = os.path.splitext(file.filename or "")[1].lower() or ".webm"
     name = f"rec_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}{suffix}"
     RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)

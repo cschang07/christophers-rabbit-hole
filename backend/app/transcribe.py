@@ -1,12 +1,14 @@
-"""Meeting recording -> Gemini transcription -> new note.
+"""Meeting recording -> Voxtral transcription -> new note.
 
 Runs as a FastAPI background task. The original audio file is kept on the
 recordings volume, so a failed transcription can always be retried.
+
+Transcription only — no summarization. The note content is the raw transcript;
+the user does their own summarizing.
 """
 
 import os
 import subprocess
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -15,21 +17,12 @@ from .google_sync import TZ
 from .models import Note, Recording
 
 RECORDINGS_DIR = Path(os.environ.get("RECORDINGS_DIR", "/data/recordings"))
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-
-PROMPT = """You will receive a meeting recording. Output Markdown only, in exactly this structure:
-
-## Summary
-Bullet points covering decisions made, action items (with owners if mentioned), and the key discussion points.
-
-## Transcript
-The full transcript, split into paragraphs by speaker turns. If you can tell speakers apart, label them (Speaker 1:, Speaker 2:, ...).
-
-Rules: write in the language spoken in the audio — if the meeting is in Chinese, use Traditional Chinese. Transcribe faithfully; do not invent content for inaudible parts, mark them [inaudible]. Do not add any preface or closing remarks."""
+# Voxtral Mini Transcribe 2 — batch transcription, ~$0.003/min, strong on zh.
+MISTRAL_MODEL = os.environ.get("MISTRAL_MODEL", "voxtral-mini-2602")
 
 
 def _to_mp3(src: Path) -> Path:
-    """Re-encode to mono 64k mp3 — a format Gemini reliably accepts, and small."""
+    """Re-encode to mono 64k mp3 — small and universally accepted."""
     dst = src.with_suffix(".mp3")
     if dst.exists() and dst.stat().st_size > 0:
         return dst
@@ -43,32 +36,34 @@ def _to_mp3(src: Path) -> Path:
     return dst
 
 
-def _gemini_transcribe(mp3: Path) -> str:
-    from google import genai
+def _to_traditional(text: str) -> str:
+    """Voxtral outputs Simplified Chinese; convert to Taiwan Traditional.
+    No-op on non-Chinese text, so safe to always apply."""
+    try:
+        from opencc import OpenCC
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+        return OpenCC("s2twp").convert(text)
+    except Exception:
+        return text
+
+
+def _voxtral_transcribe(mp3: Path) -> str:
+    from mistralai import Mistral
+
+    api_key = os.environ.get("MISTRAL_API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not set")
-    client = genai.Client(api_key=api_key)
+        raise RuntimeError("MISTRAL_API_KEY not set")
+    client = Mistral(api_key=api_key)
 
-    uploaded = client.files.upload(file=str(mp3))
-    deadline = time.time() + 600
-    while getattr(uploaded.state, "name", str(uploaded.state)) == "PROCESSING":
-        if time.time() > deadline:
-            raise RuntimeError("Gemini file processing timed out")
-        time.sleep(5)
-        uploaded = client.files.get(name=uploaded.name)
-    state = getattr(uploaded.state, "name", str(uploaded.state))
-    if state != "ACTIVE":
-        raise RuntimeError(f"Gemini rejected the audio file (state={state})")
-
-    response = client.models.generate_content(
-        model=GEMINI_MODEL, contents=[uploaded, PROMPT]
-    )
-    text = (response.text or "").strip()
+    with open(mp3, "rb") as f:
+        response = client.audio.transcriptions.complete(
+            model=MISTRAL_MODEL,
+            file={"content": f, "file_name": mp3.name},
+        )
+    text = (getattr(response, "text", "") or "").strip()
     if not text:
-        raise RuntimeError("Gemini returned an empty transcript")
-    return text
+        raise RuntimeError("Voxtral returned an empty transcript")
+    return _to_traditional(text)
 
 
 def process_recording(recording_id: int):
@@ -79,7 +74,7 @@ def process_recording(recording_id: int):
             return
         try:
             mp3 = _to_mp3(RECORDINGS_DIR / rec.filename)
-            content = _gemini_transcribe(mp3)
+            content = _voxtral_transcribe(mp3)
             title = f"Meeting {datetime.now(TZ).strftime('%Y-%m-%d %H:%M')}"
             note = Note(title=title, content=content, tags=["meeting"])
             db.add(note)

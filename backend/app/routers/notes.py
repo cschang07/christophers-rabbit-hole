@@ -15,6 +15,15 @@ from ..schemas import (
 router = APIRouter(prefix="/api", tags=["notes"])
 
 
+def _derive_title(content: str) -> str:
+    """First non-empty content line, heading markers stripped — used when title is blank."""
+    for line in content.splitlines():
+        line = line.strip().lstrip("#").strip()
+        if line:
+            return line[:120]
+    return ""
+
+
 # ---- folders ----
 
 
@@ -117,6 +126,8 @@ def update_note(note_id: int, payload: NoteUpdate, db: Session = Depends(get_db)
         data["folder_id"] = None
     for key, value in data.items():
         setattr(note, key, value)
+    if not note.title.strip() and note.content.strip():
+        note.title = _derive_title(note.content)
     db.commit()
     db.refresh(note)
     return note

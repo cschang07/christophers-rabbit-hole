@@ -1,5 +1,6 @@
-import { ChatApp } from "@/components/chat/chat-app";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
-  return <ChatApp />;
+// Chat now lives at the root path. Keep /chat working for old links.
+export default function ChatPage() {
+  redirect("/");
 }

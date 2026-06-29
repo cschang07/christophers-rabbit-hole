@@ -26,8 +26,8 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-https://boasting-cheek-squiggly.ngrok-free.dev/api/google/callback}
       TIMEZONE: ${TIMEZONE:-Asia/Taipei}
       TZ: ${TIMEZONE:-Asia/Taipei}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-voxtral-mini-2602}
       OAUTHLIB_INSECURE_TRANSPORT: "1"
     volumes:
       - recordings:/data/recordings
