@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import TaskModal from '@/tasks/TaskModal';
-import { PRIORITY_COLORS, STATUS_LABELS, dueLabel, useTasks, type Task } from '@/tasks/useTasks';
+import { STATUS_LABELS, dueLabel, useTasks, type Task } from '@/tasks/useTasks';
 
 const COLUMNS: Task['status'][] = ['todo', 'in_progress', 'done'];
 
@@ -13,17 +13,25 @@ function Card({ task, dragging, onDragStart, onDragEnd, onClick }: {
   onClick: () => void;
 }) {
   const due = dueLabel(task.due_date);
+  const done = task.status === 'done';
+  const hasMeta = task.priority === 'high' || due || task.pomodoro_count > 0;
   return (
-    <div className={`kanban-card ${dragging ? 'dragging' : ''}`} draggable
-      onDragStart={onDragStart} onDragEnd={onDragEnd} onClick={onClick}>
+    <div
+      className={`kanban-card prio-${task.priority} ${done ? 'is-done' : ''} ${dragging ? 'dragging' : ''}`}
+      draggable role="button" tabIndex={0}
+      aria-label={`${task.title}${done ? ' (done)' : ''} — open task`}
+      onDragStart={onDragStart} onDragEnd={onDragEnd} onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+    >
       <div className="kanban-card-title">
-        <span className="priority-dot" style={{ background: PRIORITY_COLORS[task.priority] }} />
-        {task.title}
+        {done && <span className="kanban-card-check" aria-hidden>✓</span>}
+        <span className="kanban-card-text">{task.title}</span>
       </div>
-      {(due || task.pomodoro_count > 0) && (
+      {hasMeta && (
         <div className="kanban-card-meta">
-          {due && <span className={`due ${due.cls}`}>{due.text}</span>}
-          {task.pomodoro_count > 0 && <span className="poms">◷ {task.pomodoro_count}</span>}
+          {task.priority === 'high' && <span className="meta-badge prio">High</span>}
+          {due && <span className={`meta-badge due ${due.cls}`}>{due.text}</span>}
+          {task.pomodoro_count > 0 && <span className="meta-badge poms">◷ {task.pomodoro_count}</span>}
         </div>
       )}
     </div>
@@ -59,9 +67,16 @@ export default function BoardPage() {
     const { status, index } = dropTarget;
     const sort_order = orderAt(status, index);
     endDrag();
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status, sort_order } : t)));
-    try { await updateTask(task.id, { status, sort_order }); }
-    catch (err) { alert(`Move failed — ${(err as Error).message}`); }
+    if (task.status === status && task.sort_order === sort_order) return;
+    // Snapshot for rollback so a failed move never leaves the UI silently stale.
+    const prev = { status: task.status, sort_order: task.sort_order };
+    setTasks((ts) => ts.map((t) => (t.id === task.id ? { ...t, status, sort_order } : t)));
+    try {
+      await updateTask(task.id, { status, sort_order });
+    } catch (err) {
+      setTasks((ts) => ts.map((t) => (t.id === task.id ? { ...t, ...prev } : t)));
+      alert(`Move failed — ${(err as Error).message}`);
+    }
   };
 
   if (loading) return <div className="page muted">Loading…</div>;
@@ -69,9 +84,41 @@ export default function BoardPage() {
 
   const editingTask = editing && 'id' in editing ? editing as Task : null;
 
+  const total = tasks.length;
+  const doneCount = tasks.filter((t) => t.status === 'done').length;
+  const overdue = tasks.filter(
+    (t) => t.status !== 'done' && dueLabel(t.due_date)?.cls === 'overdue',
+  ).length;
+  const donePct = total ? Math.round((doneCount / total) * 100) : 0;
+
   return (
     <div className="page board-page">
-      <h1>Board</h1>
+      <header className="board-header">
+        <div className="board-header-main">
+          <h1>Board</h1>
+          <p className="board-subtitle muted">Work tasks, organized by status</p>
+        </div>
+        <div className="board-stats">
+          {COLUMNS.map((status) => (
+            <div key={status} className={`board-stat board-stat--${status}`}>
+              <span className="board-stat-num">{byColumn(status).length}</span>
+              <span className="board-stat-label">{STATUS_LABELS[status]}</span>
+            </div>
+          ))}
+          {overdue > 0 && (
+            <div className="board-stat board-stat--overdue">
+              <span className="board-stat-num">{overdue}</span>
+              <span className="board-stat-label">Overdue</span>
+            </div>
+          )}
+          <div className="board-progress" title={`${doneCount} of ${total} done`}>
+            <div className="board-progress-bar">
+              <div className="board-progress-fill" style={{ width: `${donePct}%` }} />
+            </div>
+            <span className="board-progress-label muted">{donePct}% done</span>
+          </div>
+        </div>
+      </header>
       <div className="kanban">
         {COLUMNS.map((status) => {
           const col = byColumn(status);
@@ -80,7 +127,8 @@ export default function BoardPage() {
             dragId != null && dropTarget?.status === status && dropTarget.index === i;
           return (
             <div key={status}
-              className={`kanban-col ${dropTarget?.status === status ? 'drop-active' : ''}`}
+              className={`kanban-col kanban-col--${status} ${dropTarget?.status === status ? 'drop-active' : ''}`}
+              role="group" aria-label={`${STATUS_LABELS[status]} (${col.length})`}
               onDragOver={(e) => {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
@@ -94,7 +142,10 @@ export default function BoardPage() {
               }}
               onDrop={drop}
             >
-              <div className="kanban-col-header">{STATUS_LABELS[status]} <span className="muted">{col.length}</span></div>
+              <div className="kanban-col-header">
+                <span className="kanban-col-name"><span className="kanban-col-dot" />{STATUS_LABELS[status]}</span>
+                <span className="kanban-col-count">{col.length}</span>
+              </div>
               <div className="kanban-cards">
                 {col.map((t) => (
                   <div key={t.id}>
@@ -104,9 +155,17 @@ export default function BoardPage() {
                       onDragEnd={endDrag} onClick={() => setEditing(t)} />
                   </div>
                 ))}
-                {indicatorAt(others.length) && <div className="drop-indicator" />}
+                {indicatorAt(others.length) && <div className="drop-indicator drop-indicator--end" />}
+                {others.length === 0 && dragId == null && (
+                  <button className="kanban-empty" aria-label={`Add a task to ${STATUS_LABELS[status]}`} onClick={() => setEditing({ status })}>
+                    <span className="kanban-empty-plus" aria-hidden>+</span>
+                    <span>Add a task</span>
+                  </button>
+                )}
               </div>
-              <button className="kanban-add" onClick={() => setEditing({ status })}>+ Add task</button>
+              {others.length > 0 && (
+                <button className="kanban-add" aria-label={`Add a task to ${STATUS_LABELS[status]}`} onClick={() => setEditing({ status })}>+ Add task</button>
+              )}
             </div>
           );
         })}
