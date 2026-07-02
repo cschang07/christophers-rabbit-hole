@@ -24,6 +24,12 @@ with engine.begin() as conn:
             "list_type VARCHAR(20) NOT NULL DEFAULT 'work'"
         )
     )
+    conn.execute(
+        text(
+            "ALTER TABLE recordings ADD COLUMN IF NOT EXISTS "
+            "progress VARCHAR(40) NOT NULL DEFAULT ''"
+        )
+    )
 
 with SessionLocal() as db:
     bootstrap_google_credentials(db)

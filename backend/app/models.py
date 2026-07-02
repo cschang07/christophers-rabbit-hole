@@ -94,6 +94,7 @@ class Recording(Base):
     filename: Mapped[str] = mapped_column(String(300))
     status: Mapped[str] = mapped_column(String(20), default="processing")  # processing | done | failed
     error: Mapped[str] = mapped_column(Text, default="")
+    progress: Mapped[str] = mapped_column(String(40), default="")  # e.g. "segment 2/4" while processing
     note_id: Mapped[int | None] = mapped_column(
         ForeignKey("notes.id", ondelete="SET NULL"), nullable=True
     )

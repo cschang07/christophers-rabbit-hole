@@ -114,6 +114,46 @@ button,
   .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
 
+  /* task work log */
+  .worklog { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .worklog-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .worklog-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .worklog-count {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    background: var(--bg-3); border: 1px solid var(--border); border-radius: 99px;
+    min-width: 20px; text-align: center; padding: 1px 6px;
+  }
+  .worklog-compose { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .worklog-compose textarea { resize: vertical; min-height: 44px; }
+  .worklog-compose .btn { align-self: flex-end; padding: 6px 16px; font-size: 13px; }
+  .worklog-error { color: var(--red); font-size: 12px; margin: 0 0 12px; }
+  .worklog-empty { color: var(--muted); font-size: 13px; margin: 0; padding: 4px 0; }
+  .worklog-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .worklog-entry {
+    position: relative; padding: 0 0 14px 18px;
+    border-left: 2px solid var(--border);
+  }
+  .worklog-entry:last-child { padding-bottom: 0; border-left-color: transparent; }
+  .worklog-entry::before {
+    content: ''; position: absolute; left: -5px; top: 5px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg-2);
+  }
+  .worklog-entry-head { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+  .worklog-entry-head time { font-weight: 600; color: var(--text); }
+  .worklog-age::before { content: '·'; margin-right: 8px; }
+  .worklog-del {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 16px; line-height: 1; padding: 0 2px;
+    opacity: 0; transition: opacity 0.12s ease, color 0.12s ease;
+  }
+  .worklog-entry:hover .worklog-del, .worklog-del:focus-visible { opacity: 1; }
+  .worklog-del:hover { color: var(--red); }
+  .worklog-body {
+    margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: var(--text);
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+
   /* todo */
   .quick-add { display: flex; gap: 8px; margin-bottom: 20px; }
   .quick-add .input { flex: 1; }
@@ -372,6 +412,7 @@ button,
   .rec-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: rec-pulse 1.2s infinite; }
   .rec-dot.static { animation: none; }
   .rec-error { margin-top: 8px; font-size: 12px; color: var(--red); cursor: pointer; line-height: 1.4; }
+  .rec-recover { margin-top: 8px; padding: 8px 10px; border: 1px dashed var(--accent); border-radius: 8px; font-size: 12px; color: var(--text); display: flex; flex-direction: column; gap: 6px; line-height: 1.4; }
   .job-item { padding: 10px 12px; border: 1px dashed var(--border); border-radius: 8px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .job-item.failed { border-color: var(--red); }
   .job-error { color: var(--red); font-size: 12px; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }

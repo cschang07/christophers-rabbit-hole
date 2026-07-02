@@ -19,6 +19,7 @@ class RecordingOut(BaseModel):
     id: int
     status: str
     error: str
+    progress: str
     note_id: int | None
     created_at: datetime
 
@@ -68,6 +69,7 @@ def retry_recording(
         raise HTTPException(410, "Audio file no longer exists")
     rec.status = "processing"
     rec.error = ""
+    rec.progress = ""
     db.commit()
     db.refresh(rec)
     background.add_task(process_recording, rec.id)

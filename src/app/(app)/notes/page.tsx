@@ -3,13 +3,13 @@
 import { marked } from 'marked';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
-import { fmtElapsed, useRecorder } from '@/context/recorder';
+import { fmtBytes, fmtElapsed, useRecorder } from '@/context/recorder';
 
 marked.setOptions({ breaks: true, gfm: true });
 
 interface Folder { id: number; name: string; parent_id: number | null; }
 interface Note { id: number; title: string; content: string; folder_id: number | null; tags: string[]; _tagsRaw?: string; }
-interface RecordingJob { id: number; status: 'processing' | 'done' | 'failed'; error?: string; }
+interface RecordingJob { id: number; status: 'processing' | 'done' | 'failed'; error?: string; progress?: string; }
 
 // Turn a raw transcription error (e.g. a verbatim "429 RESOURCE_EXHAUSTED {…}"
 // API blob) into something a human can read. The raw text stays in the tooltip.
@@ -19,6 +19,7 @@ function friendlyTranscriptionError(err?: string): string {
   if (/timeout|timed out|deadline/.test(e)) return 'Transcription timed out — please retry.';
   if (/413|too large|payload/.test(e)) return 'Recording is too large to transcribe.';
   if (/401|403|api.?key|unauthor/.test(e)) return 'Transcription service rejected the request (auth/key issue).';
+  if (/ffmpeg|invalid data|could not find|decode/.test(e)) return 'Could not read this audio file — is it a valid recording?';
   return 'Transcription failed — please retry.';
 }
 
@@ -66,6 +67,7 @@ export default function NotesPage() {
   const currentRef = useRef<Note | null>(null);
   currentRef.current = current;
   const recorder = useRecorder();
+  const audioInput = useRef<HTMLInputElement | null>(null);
 
   const loadMeta = useCallback(async () => {
     const [fs, ts] = await Promise.all([api.get<Folder[]>('/folders'), api.get<string[]>('/notes/tags')]);
@@ -187,12 +189,31 @@ export default function NotesPage() {
       <aside className="notes-sidebar">
         <button className="btn" style={{ width: '100%' }} onClick={newNote}>+ New Note</button>
         {recorder.status === 'idle' && (
-          <button className="btn record-btn" onClick={recorder.start}><span className="rec-dot static" /> Record Meeting</button>
+          <>
+            <button className="btn record-btn" onClick={recorder.start}><span className="rec-dot static" /> Record Meeting</button>
+            <button className="btn record-btn" onClick={() => audioInput.current?.click()}>⬆ Upload Audio</button>
+            <input ref={audioInput} type="file" style={{ display: 'none' }}
+              accept="audio/*,video/mp4,.m4a,.mp3,.wav,.webm,.ogg,.oga,.opus,.flac,.aac,.amr"
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void recorder.uploadFile(f); }} />
+          </>
         )}
         {recorder.status === 'recording' && (
           <button className="btn record-btn recording" onClick={recorder.stop}>■ Stop · {fmtElapsed(recorder.elapsed)}</button>
         )}
-        {recorder.status === 'uploading' && <button className="btn record-btn" disabled>Uploading…</button>}
+        {recorder.status === 'uploading' && (
+          <button className="btn record-btn" disabled>
+            Uploading…{recorder.uploadProgress != null ? ` ${recorder.uploadProgress}%` : ''}
+          </button>
+        )}
+        {recorder.recovered && recorder.status === 'idle' && (
+          <div className="rec-recover">
+            <div>Unsaved recording from {new Date(recorder.recovered.startedAt).toLocaleString()} ({fmtBytes(recorder.recovered.sizeBytes)})</div>
+            <div className="job-actions">
+              <button className="btn secondary small" onClick={() => void recorder.recoverUpload()}>Transcribe</button>
+              <button className="btn danger small" onClick={() => void recorder.recoverDiscard()}>Discard</button>
+            </div>
+          </div>
+        )}
         {recorder.error && (
           <div className="rec-error" onClick={() => recorder.setError(null)} title="Click to dismiss">{recorder.error}</div>
         )}
@@ -218,7 +239,7 @@ export default function NotesPage() {
           {jobs.filter((j) => j.status !== 'done').map((j) => (
             <div key={`job${j.id}`} className={`job-item ${j.status}`}>
               {j.status === 'processing' ? (
-                <><span className="spinner" /> Transcribing… this can take a few minutes.</>
+                <><span className="spinner" /> Transcribing{j.progress ? ` (${j.progress})` : ''}… this can take a few minutes.</>
               ) : (
                 <>
                   <div className="job-error" title={j.error}>{friendlyTranscriptionError(j.error)}</div>
