@@ -184,6 +184,18 @@ export default function NotesPage() {
     edit({ tags: parsed, _tagsRaw: raw });
   };
 
+  // Diarized transcripts label speakers "**Speaker N**". Let the user swap in
+  // real names — one-shot find/replace across the note body.
+  const speakerLabels = current
+    ? [...new Set(current.content.match(/\*\*Speaker \d+\*\*/g) ?? [])].map((m) => m.slice(2, -2))
+    : [];
+  const renameSpeaker = (label: string) => {
+    const name = prompt(`Rename "${label}" to:`, label);
+    if (!name?.trim() || name.trim() === label) return;
+    const safe = `**${name.trim().replace(/\*/g, '')}**`;
+    edit({ content: current!.content.split(`**${label}**`).join(safe) });
+  };
+
   return (
     <div className="notes-layout">
       <aside className="notes-sidebar">
@@ -198,7 +210,14 @@ export default function NotesPage() {
           </>
         )}
         {recorder.status === 'recording' && (
-          <button className="btn record-btn recording" onClick={recorder.stop}>■ Stop · {fmtElapsed(recorder.elapsed)}</button>
+          <>
+            <button className="btn record-btn recording" onClick={recorder.stop}>■ Stop · {fmtElapsed(recorder.elapsed)}</button>
+            {recorder.backupFailed && (
+              <div className="rec-error" title="IndexedDB write failed — likely storage full or private browsing">
+                ⚠ Crash backup unavailable — don&apos;t refresh or close this tab until you stop.
+              </div>
+            )}
+          </>
         )}
         {recorder.status === 'uploading' && (
           <button className="btn record-btn" disabled>
@@ -273,6 +292,14 @@ export default function NotesPage() {
             </div>
             <input className="input editor-tags" placeholder="tags, comma, separated"
               value={current._tagsRaw ?? current.tags.join(', ')} onChange={(e) => setNoteTags(e.target.value)} />
+            {!preview && speakerLabels.length > 0 && (
+              <div className="speaker-bar">
+                <span className="muted">Rename speaker:</span>
+                {speakerLabels.map((label) => (
+                  <button key={label} className="tag" onClick={() => renameSpeaker(label)}>{label}</button>
+                ))}
+              </div>
+            )}
             {preview ? (
               <div className="markdown-preview" dangerouslySetInnerHTML={{ __html: String(marked.parse(current.content || '*Empty note*')) }} />
             ) : (

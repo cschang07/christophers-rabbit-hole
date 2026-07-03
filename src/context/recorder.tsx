@@ -13,6 +13,7 @@ interface RecorderContextValue {
   uploadedAt: number;
   uploadProgress: number | null;
   recovered: RecoveredRecording | null;
+  backupFailed: boolean;
   start: () => Promise<void>;
   stop: () => Promise<void>;
   uploadFile: (file: File) => Promise<void>;
@@ -99,6 +100,7 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
   const [uploadedAt, setUploadedAt] = useState(0);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [recovered, setRecovered] = useState<RecoveredRecording | null>(null);
+  const [backupFailed, setBackupFailed] = useState(false);
   const media = useRef<{ recorder: MediaRecorder; stream: MediaStream; chunks: Blob[]; mime: string } | null>(null);
   const startTs = useRef(0);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
@@ -181,14 +183,18 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.push(e.data);
-          const write = idbAppendChunk(e.data).catch(() => {});
+          // Surface backup failures (quota exceeded, private-mode eviction):
+          // recording keeps going from memory, but the user should know the
+          // crash safety net is gone before betting a 3h meeting on it.
+          const write = idbAppendChunk(e.data).catch(() => { setBackupFailed(true); });
           pendingWrites.current.add(write);
           void write.finally(() => pendingWrites.current.delete(write));
         }
       };
+      setBackupFailed(false);
       await idbClear().catch(() => {});
       setRecovered(null);
-      await idbSetMeta({ mime: recorder.mimeType || mime || 'audio/webm', startedAt: Date.now() }).catch(() => {});
+      await idbSetMeta({ mime: recorder.mimeType || mime || 'audio/webm', startedAt: Date.now() }).catch(() => { setBackupFailed(true); });
       recorder.start(5000);
       media.current = { recorder, stream, chunks, mime: recorder.mimeType };
       startTs.current = Date.now();
@@ -270,7 +276,7 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <Ctx.Provider value={{
-      status, elapsed, error, uploadedAt, uploadProgress, recovered,
+      status, elapsed, error, uploadedAt, uploadProgress, recovered, backupFailed,
       start, stop, uploadFile, recoverUpload, recoverDiscard, setError,
     }}>
       {children}
