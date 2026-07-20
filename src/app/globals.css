@@ -193,6 +193,7 @@ button,
   }
   .board-stat-num { font-size: 18px; font-weight: 700; line-height: 1.1; }
   .board-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .board-stat--future { border-left-color: #0ea5e9; }
   .board-stat--todo { border-left-color: #94a3b8; }
   .board-stat--in_progress { border-left-color: var(--accent); }
   .board-stat--done { border-left-color: var(--green); }
@@ -224,6 +225,7 @@ button,
   }
   .kanban-col-name { display: flex; align-items: center; gap: 8px; }
   .kanban-col-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .kanban-col--future .kanban-col-dot { background: #0ea5e9; }
   .kanban-col--todo .kanban-col-dot { background: #94a3b8; }
   .kanban-col--in_progress .kanban-col-dot { background: var(--accent); }
   .kanban-col--done .kanban-col-dot { background: var(--green); }

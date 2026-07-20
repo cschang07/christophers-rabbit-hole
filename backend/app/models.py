@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
 
-TASK_STATUSES = ("todo", "in_progress", "done")
+TASK_STATUSES = ("future", "todo", "in_progress", "done")
 TASK_PRIORITIES = ("low", "medium", "high")
 TASK_LIST_TYPES = ("personal", "work")
 

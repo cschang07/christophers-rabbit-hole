@@ -1,20 +1,39 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task, TaskInput } from './useTasks';
+import {
+  PERSONAL_STATUSES,
+  STATUS_LABELS,
+  type Task,
+  type TaskInput,
+  type TaskStatus,
+} from './useTasks';
 
 interface Props {
   task: Task | null;
   defaultStatus?: Task['status'];
+  /** Status choices shown in the select. Defaults to personal (no 未來規劃). */
+  statusOptions?: readonly TaskStatus[];
   onSave: (data: TaskInput) => Promise<unknown>;
   onDelete?: (() => Promise<void>) | null;
   onClose: () => void;
 }
 
-export default function TaskModal({ task, defaultStatus, onSave, onDelete, onClose }: Props) {
+export default function TaskModal({
+  task,
+  defaultStatus,
+  statusOptions = PERSONAL_STATUSES,
+  onSave,
+  onDelete,
+  onClose,
+}: Props) {
+  const initialStatus = task?.status ?? defaultStatus ?? 'todo';
+  const safeInitialStatus = statusOptions.includes(initialStatus)
+    ? initialStatus
+    : (statusOptions[0] ?? 'todo');
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
-  const [status, setStatus] = useState<Task['status']>(task?.status ?? defaultStatus ?? 'todo');
+  const [status, setStatus] = useState<Task['status']>(safeInitialStatus);
   const [priority, setPriority] = useState<Task['priority']>(task?.priority ?? 'medium');
   const [dueDate, setDueDate] = useState(task?.due_date ?? '');
   const [saving, setSaving] = useState(false);
@@ -52,9 +71,9 @@ export default function TaskModal({ task, defaultStatus, onSave, onDelete, onClo
             <div className="form-row">
               <label>Status</label>
               <select className="input" value={status} onChange={(e) => setStatus(e.target.value as Task['status'])}>
-                <option value="todo">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="done">Done</option>
+                {statusOptions.map((s) => (
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                ))}
               </select>
             </div>
             <div className="form-row">

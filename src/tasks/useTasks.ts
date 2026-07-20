@@ -5,11 +5,19 @@ import { api } from '@/lib/api';
 
 export type TaskListType = 'personal' | 'work';
 
+export type TaskStatus = 'future' | 'todo' | 'in_progress' | 'done';
+
+/** Personal /todo modal — no 未來規劃. */
+export const PERSONAL_STATUSES: readonly TaskStatus[] = ['todo', 'in_progress', 'done'];
+
+/** Work Board columns / modal — includes 未來規劃 first. */
+export const WORK_STATUSES: readonly TaskStatus[] = ['future', 'todo', 'in_progress', 'done'];
+
 export interface Task {
   id: number;
   title: string;
   description: string;
-  status: 'todo' | 'in_progress' | 'done';
+  status: TaskStatus;
   list_type: TaskListType;
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
@@ -74,7 +82,8 @@ export const PRIORITY_COLORS: Record<string, string> = {
   low: 'var(--green)',
 };
 
-export const STATUS_LABELS: Record<string, string> = {
+export const STATUS_LABELS: Record<TaskStatus, string> = {
+  future: '未來規劃',
   todo: 'To Do',
   in_progress: 'In Progress',
   done: 'Done',

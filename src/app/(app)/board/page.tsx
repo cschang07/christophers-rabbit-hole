@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import TaskModal from '@/tasks/TaskModal';
-import { STATUS_LABELS, dueLabel, useTasks, type Task } from '@/tasks/useTasks';
+import { STATUS_LABELS, WORK_STATUSES, dueLabel, useTasks, type Task } from '@/tasks/useTasks';
 
-const COLUMNS: Task['status'][] = ['todo', 'in_progress', 'done'];
+const COLUMNS = WORK_STATUSES;
 
 function Card({ task, dragging, onDragStart, onDragEnd, onClick }: {
   task: Task; dragging: boolean;
@@ -174,6 +174,7 @@ export default function BoardPage() {
         <TaskModal
           task={editingTask}
           defaultStatus={editingTask ? editingTask.status : (editing as { status: Task['status'] }).status}
+          statusOptions={WORK_STATUSES}
           onSave={(data) => editingTask ? updateTask(editingTask.id, data) : createTask(data)}
           onDelete={editingTask ? () => deleteTask(editingTask.id) : null}
           onClose={() => setEditing(null)}
