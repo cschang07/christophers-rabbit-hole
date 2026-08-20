@@ -19,6 +19,7 @@ interface SearchOpts {
   maxResults?: number;
   days?: number;
   searchDepth?: "basic" | "advanced";
+  includeDomains?: string[];
 }
 
 /**
@@ -44,6 +45,7 @@ export async function searchTavily(
         search_depth: opts.searchDepth ?? "basic",
         max_results: opts.maxResults ?? 8,
         days: opts.days ?? 3,
+        include_domains: opts.includeDomains,
       }),
       // mirror outlook-data caching; the generation layer adds its own daily cache
       next: { revalidate: 3600 },

@@ -12,7 +12,7 @@ export const themes: Theme[] = [
     name: "0050",
     description: "元大台灣50 — 成分股、資金流向、配息與大盤脈動",
     status: "active",
-    accent: "#0f766e",
+    accent: "#ffd400",
     icon: "chart",
   },
   {
@@ -21,7 +21,7 @@ export const themes: Theme[] = [
     name: "AI",
     description: "模型發布、基礎建設、企業採用",
     status: "active",
-    accent: "#6366f1",
+    accent: "#67e8f9",
     icon: "spark",
   },
   {
@@ -30,7 +30,7 @@ export const themes: Theme[] = [
     name: "Taiwan Market",
     description: "台股政策、法說、產業輪動",
     status: "active",
-    accent: "#ec4899",
+    accent: "#f472b6",
     icon: "flag",
   },
 ];
